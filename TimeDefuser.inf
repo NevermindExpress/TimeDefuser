@@ -1,0 +1,62 @@
+;
+; TimeDefuser.inf
+;
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = System ; TODO: specify appropriate Class
+ClassGuid   = {4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider    = %ManufacturerName%
+CatalogFile = TimeDefuser.cat
+DriverVer   = ; TODO: set DriverVer in stampinf property pages
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+TimeDefuser.sys = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName% = Standard,NT$ARCH$.6.0.. ; %13% support introduced in build 16299
+
+[Standard.NT$ARCH$.6.0..]
+%TimeDefuser.DeviceDesc% = TimeDefuser_Device, Root\TimeDefuser ; TODO: edit hw-id
+
+[TimeDefuser_Device.NT]
+CopyFiles = File_Copy
+
+[File_Copy]
+TimeDefuser.sys
+
+;-------------- Service installation
+[TimeDefuser_Device.NT.Services]
+AddService = TimeDefuser,%SPSVCINST_ASSOCSERVICE%, TimeDefuser_Service_Inst
+
+; -------------- TimeDefuser driver install sections
+[TimeDefuser_Service_Inst]
+DisplayName    = %TimeDefuser.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 0               ; SERVICE_BOOT_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %11%\TimeDefuser.sys
+
+[TimeDefuser_Device.NT.Wdf]
+KmdfService = TimeDefuser, TimeDefuser_wdfsect
+
+[TimeDefuser_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE = 0x00000002
+ManufacturerName = "NevermindExpress@Aceyware (a.k.a. Lenna1327@BetaArchive)" ;TODO: Replace with your manufacturer name
+DiskName = "TimeDefuser Installation Disk"
+TimeDefuser.DeviceDesc = "TimeDefuser"
+TimeDefuser.SVCDESC = "TimeDefuser Service"
