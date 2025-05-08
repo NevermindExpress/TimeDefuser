@@ -1,0 +1,89 @@
+;/*++
+;
+;Copyright (c) 1990-2000  Microsoft Corporation
+;
+;Module Name:
+;    TimeDefuser.INF
+;
+;Abstract:
+;    INF file for installing the Driver Frameworks TimeDefuser Driver
+;
+;Installation Notes: 
+;    Using Devcon: Type "devcon install TimeDefuser.inf root\TimeDefuser" to install
+;
+;--*/
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Sample
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}
+Provider=%ManufacturerName%
+DriverVer=05/07/2025,6.1.7600.16385
+CatalogFile=TimeDefuser.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg     
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskId1%,,,""
+
+[SourceDisksFiles]
+TimeDefuser.sys  = 1,,
+
+;*****************************************
+; TimeDefuser  Install Section
+;*****************************************
+
+[Manufacturer]
+%StdMfg%=Standard,NTx86
+
+; Following section is meant for Windows 2000 as it 
+; cannot parse decorated model sections
+[Standard]
+;
+; Hw Id is root\TimeDefuser
+;
+%TimeDefuser.DeviceDesc%=TimeDefuser_Device, root\TimeDefuser
+
+; Decorated model section take precedence over undecorated 
+; ones on XP and later.
+[Standard.NTx86]
+%TimeDefuser.DeviceDesc%=TimeDefuser_Device, root\TimeDefuser
+
+[TimeDefuser_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+TimeDefuser.sys
+
+;-------------- Service installation
+[TimeDefuser_Device.NT.Services]
+AddService = TimeDefuser,%SPSVCINST_ASSOCSERVICE%, TimeDefuser_Service_Inst
+
+; -------------- TimeDefuser driver install sections
+[TimeDefuser_Service_Inst]
+DisplayName    = %TimeDefuser.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 0               ; SERVICE_BOOT_START 
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\TimeDefuser.sys
+LoadOrderGroup = Extended Base
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName = "NevermindExpress@Aceyware"
+StdMfg = "(Standard system devices)"
+DiskId1 = "TimeDefuser Installation Disk"
+TimeDefuser.DeviceDesc = "TimeDefuser"
+TimeDefuser.SVCDESC = "TimeDefuser Service"
+ClassName       = "Sample Device"
+

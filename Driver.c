@@ -43,10 +43,15 @@ DriverEntry(
 	// Allocate the driver configuration object
 	WDF_DRIVER_CONFIG config;
 	// Address of SystemExpirationDate field at KUSER_SHARED_DATA
+#if defined(AMD64)
 	LARGE_INTEGER* li = (LARGE_INTEGER*)0xfffff780000002c8; 
-
+#elif defined(i386)
+	LARGE_INTEGER* li = (LARGE_INTEGER*)0xffdf02c8;
+#else
+#error Unsupported architecture.
+#endif
 	// Change SystemExpirationDate
-	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser:DriverEntry: loaded, currently SystemExpirationDate is: %llu\n", li->QuadPart));
+	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser: version 1.3 loaded. | Compiled on "__DATE__" "__TIME__" | https://github.com/NevermindExpress/TimeDefuser\n"));
 	unsigned long long TimebombStamp = li->QuadPart; li->QuadPart = 0;
 	if (!TimebombStamp) {
 		KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser:DriverEntry: No timebomb found, exiting.")); return STATUS_FAILED_DRIVER_ENTRY;

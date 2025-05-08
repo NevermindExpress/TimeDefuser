@@ -5,9 +5,9 @@ which is seen on most prerelease builds that has been ever compiled.
 This patch patches the code itself that is responsible for the timebomb so it is the most effective
 way to neutralize it.
 
-While it should theoretically work on every build ever, this patch is developed atop Windows 8 x64
-and it is currently unknown that it would work as-is on older versions or not. ETA? Depends on how
-much attention this project would get. Same goes with x86 support too.
+While it should theoretically work on every build ever, ~~this patch is initially developed atop Windows 8 x64
+and it is currently unknown that it would work as-is on older versions or not.~~ **UPDATE:** Windows XP and earlier,
+and x86-32 support is now implemented.
 
 > [!WARNING]
 > This driver is intended to remove the **Windows expiration date only**
