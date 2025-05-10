@@ -8,6 +8,7 @@
 ///
 
 #include <ntddk.h>
+#if NTDDI_VERSION < 0x06000000
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT, PUNICODE_STRING);
 
@@ -117,3 +118,4 @@ patchOK:
 	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser: Patch completed successfully.\n"));
     return STATUS_SUCCESS;
 }
+#endif

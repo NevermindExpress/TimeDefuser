@@ -1,13 +1,14 @@
 #include <ntddk.h>
-#include <wdf.h>
+#if NTDDI_VERSION >= 0x06000000
+//#include <wdf.h>
 
 #define SystemModuleInformation 11
 
-extern __kernel_entry NTSTATUS NTAPI ZwQuerySystemInformation(
-	IN int SystemInformationClass,
-	OUT PVOID SystemInformation,
-	IN ULONG SystemInformationLength,
-	OUT PULONG ReturnLength OPTIONAL
+extern "C" __kernel_entry NTSTATUS NTAPI ZwQuerySystemInformation(
+	int SystemInformationClass,
+	PVOID SystemInformation,
+	ULONG SystemInformationLength,
+	PULONG ReturnLength OPTIONAL
 );
 
 typedef struct _RTL_PROCESS_MODULE_INFORMATION {
@@ -25,23 +26,15 @@ typedef struct _RTL_PROCESS_MODULE_INFORMATION {
 
 typedef struct _RTL_PROCESS_MODULES {
 	ULONG NumberOfModules;
-	_Field_size_(NumberOfModules) RTL_PROCESS_MODULE_INFORMATION Modules[1];
+	RTL_PROCESS_MODULE_INFORMATION Modules[1];
 } RTL_PROCESS_MODULES, * PRTL_PROCESS_MODULES;
 
-// fffff78000000000
-DRIVER_INITIALIZE DriverEntry;
-EVT_WDF_DRIVER_DEVICE_ADD TimeDefuserDeviceAdd;
+extern "C" DRIVER_INITIALIZE DriverEntry;
 
-NTSTATUS
-DriverEntry(
-	_In_ PDRIVER_OBJECT     DriverObject,
-	_In_ PUNICODE_STRING    RegistryPath
-) {
+extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) {
 	// NTSTATUS variable to record success or failure
 	NTSTATUS status = STATUS_SUCCESS;
 
-	// Allocate the driver configuration object
-	WDF_DRIVER_CONFIG config;
 	// Address of SystemExpirationDate field at KUSER_SHARED_DATA
 #if defined(AMD64)
 	LARGE_INTEGER* li = (LARGE_INTEGER*)0xfffff780000002c8; 
@@ -50,18 +43,22 @@ DriverEntry(
 #else
 #error Unsupported architecture.
 #endif
+	// Print version info.
+	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser: version 1.3 loaded. \
+	| Compiled on " __DATE__ " " __TIME__ " | https://github.com/NevermindExpress/TimeDefuser\n"));
+
 	// Change SystemExpirationDate
-	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser: version 1.3 loaded. | Compiled on "__DATE__" "__TIME__" | https://github.com/NevermindExpress/TimeDefuser\n"));
 	unsigned long long TimebombStamp = li->QuadPart; li->QuadPart = 0;
 	if (!TimebombStamp) {
-		KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser:DriverEntry: No timebomb found, exiting.")); return STATUS_FAILED_DRIVER_ENTRY;
+		KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser:DriverEntry: No timebomb found, exiting.\n")); 
+		return STATUS_FAILED_DRIVER_ENTRY;
 	}
 	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser:DriverEntry: SystemExpirationDate is updated and it is now: %llu\n", li->QuadPart));
 
 	// Get kernel base
 	RTL_PROCESS_MODULES ModuleInfo = { 0 };
 	status = ZwQuerySystemInformation(SystemModuleInformation, &ModuleInfo, sizeof(ModuleInfo), 0);
-	unsigned long long* KernelBase = ModuleInfo.Modules[0].ImageBase;
+	unsigned long long* KernelBase = (unsigned long long*)ModuleInfo.Modules[0].ImageBase;
 	ULONG KernelSize = ModuleInfo.Modules[0].ImageSize;
 	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser:DriverEntry: Kernel Base address is 0x%p and size is %lu\n", KernelBase, KernelSize));
 	
@@ -100,8 +97,8 @@ DriverEntry(
 		goto patchFail;
 	}						
 	
-	const size_t sectName = 0x00004b4c45474150; // "PAGELK\0\0"
-	int KernelSize2 = 0;
+	const __int64 sectName = 0x00004b4c45474150; // "PAGELK\0\0"
+	unsigned int KernelSize2 = 0;
 	unsigned char* PotentialTimeRef = (unsigned char*)KernelBase;
 
 	// Search for PAGELK section at PE sections. This section is where the 
@@ -149,7 +146,7 @@ DriverEntry(
 						// Create a MDL paging to get over write protection.
 						PMDL mdl = IoAllocateMdl(pExGetExpirationDate, 8, FALSE, FALSE, NULL);
 						if (!mdl) { 
-							KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser:DriverEntry: IoAllocateMdl failed.\n"));
+							KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser:DriverEntry: IoAllocateMdl failed.\n"));
 							goto patchFail;
 						}
 
@@ -157,7 +154,7 @@ DriverEntry(
 						void* map = MmMapLockedPagesSpecifyCache(mdl, KernelMode, MmNonCached, NULL, FALSE, NormalPagePriority);
 						MmProtectMdlSystemAddress(mdl, PAGE_READWRITE);
 						// Write to newly created MDL mapping.
-						*(int*)map = 0xC3C03148;
+						*(int*)map = 0xC3C03148; // xor eax,eax \ ret | This is apparently same for both x86 and x64
 						// Unmap the MDL
 						MmUnmapLockedPages(map, mdl);
 						MmUnlockPages(mdl);
@@ -176,42 +173,7 @@ patchFail:
 	return STATUS_FAILED_DRIVER_ENTRY;
 
 patchOK:
-	WDF_DRIVER_CONFIG_INIT(&config,
-		TimeDefuserDeviceAdd
-	);
-	
-	// Finally, create the driver object
-	status = WdfDriverCreate(DriverObject,
-		RegistryPath,
-		WDF_NO_OBJECT_ATTRIBUTES,
-		&config,
-		WDF_NO_HANDLE
-	); 
+	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser:DriverEntry: Patch completed successfully.\n"));
 	return STATUS_SUCCESS;
 }
-
-NTSTATUS
-TimeDefuserDeviceAdd(
-	_In_    WDFDRIVER       Driver,
-	_Inout_ PWDFDEVICE_INIT DeviceInit
-)
-{
-	// We're not using the driver object,
-	// so we need to mark it as unreferenced
-	UNREFERENCED_PARAMETER(Driver);
-
-	NTSTATUS status;
-
-	// Allocate the device object
-	WDFDEVICE hDevice;
-
-	// Print "Hello World" for DriverEntry
-	//KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "TimeDefuser:TimeDefuserDeviceAdd: called."));
-
-	// Create the device object
-	status = WdfDeviceCreate(&DeviceInit,
-		WDF_NO_OBJECT_ATTRIBUTES,
-		&hDevice
-	);
-	return status;
-}
+#endif
