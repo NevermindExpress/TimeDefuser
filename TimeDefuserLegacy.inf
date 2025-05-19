@@ -20,6 +20,7 @@ ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}
 Provider=%ManufacturerName%
 DriverVer=05/07/2025,6.1.7600.16385
 CatalogFile=TimeDefuser.cat
+PnpLockdown=1
 
 [DestinationDirs]
 DefaultDestDir = 12

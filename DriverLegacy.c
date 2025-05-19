@@ -72,7 +72,7 @@ NTSTATUS DriverEntry (PDRIVER_OBJECT  DriverObject, PUNICODE_STRING UniRegistryP
 	//
 
 	// Load and change SystemExpirationDate
-	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser: version 1.3 (legacy) loaded. | Compiled on "__DATE__" "__TIME__" | https://github.com/NevermindExpress/TimeDefuser\n"));
+	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser: version 1.3.1 (legacy) loaded. | Compiled on "__DATE__" "__TIME__" | https://github.com/NevermindExpress/TimeDefuser\n"));
 	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser: currently SystemExpirationDate is: %llu\n", li->QuadPart));
 	TimebombStamp = li->QuadPart; // We will need it later so we save it.
 	li->QuadPart = 0; // And then set the KUSER field to 0.

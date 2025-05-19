@@ -3,3 +3,5 @@ x64
 *.user
 *.aps
 obj*
+Debug
+Release

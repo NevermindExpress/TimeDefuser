@@ -28,8 +28,16 @@ It will not remove the expiration date of
 4. Allow the installition and wait for "Driver Installition Complete" message
 5. If your system didn't crash so far, check expiration date from "winver", if it's not there that means that it worked.
 
-# Build
+# Testing and Bug Reporting
+The driver can either work correctly, crash the system, fail or work but not enough to fully patch the currently working system.
+In all cases the usage of kernel debugger is required to tell which one of those cases happen, and also for why exactly the system crashes.
 
+Driver logs will look like this when it works:
+![image](https://github.com/user-attachments/assets/c141ba8e-38ac-4d14-8c85-71b0edd127bd)
+
+Builds with debug symbols are recommended to try, due to symbols making debugging much easier.
+
+# Build
 ## Windows 7 and Later
 1. Get the latest WDK 
 2. open the solution 
