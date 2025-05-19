@@ -40,13 +40,15 @@ Builds with debug symbols are recommended to try, due to symbols making debuggin
 # Build
 ## Windows 7 and Later
 1. Get the latest WDK 
-2. open the solution 
-3. hit the compile button.
+2. Open the solution 
+3. Hit the compile button.
+4. Get the TimeDefuser.inf and change the \$ARCH\$ to target architecture
 ## Windows Vista and Earlier
 *Should also apply to later versions as long as a compatible WDK is used for target version.*
 1. Get a WDK/DDK compatible with your target version.
 2. Open the build environment console
 3. Locate to source folder and execute "nmake"
+4. Get the TimeDefuser.inf (for Vista) or TimeDefuserLegacy.inf (for XP and earlier) and change the \$ARCH\$ to target architecture
 
 # Screenshots
 ![Windows 8175 x64-2025-05-04-16-05-34](https://github.com/user-attachments/assets/380167b9-e24a-458a-b5ba-597313c6bbd3)

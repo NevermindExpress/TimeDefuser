@@ -1,6 +1,7 @@
 ;
 ; TimeDefuser.inf
 ;
+; Inf compiler is currently disabled so you need to copy this and change $ARCH$ manually.
 
 [Version]
 Signature   = "$WINDOWS NT$"
@@ -12,7 +13,7 @@ DriverVer   = ; TODO: set DriverVer in stampinf property pages
 PnpLockdown = 1
 
 [DestinationDirs]
-DefaultDestDir = 11
+DefaultDestDir = 12
 
 [SourceDisksNames]
 1 = %DiskName%,,,""
@@ -25,10 +26,10 @@ TimeDefuser.sys = 1,,
 ;*****************************************
 
 [Manufacturer]
-%ManufacturerName% = Standard,NT$ARCH$.6.0.. ; %13% support introduced in build 16299
+%ManufacturerName% = Standard,NT$ARCH$.6.0..
 
 [Standard.NT$ARCH$.6.0..]
-%TimeDefuser.DeviceDesc% = TimeDefuser_Device, Root\TimeDefuser ; TODO: edit hw-id
+%TimeDefuser.DeviceDesc% = TimeDefuser_Device, Root\TimeDefuser
 
 [TimeDefuser_Device.NT]
 CopyFiles = File_Copy
@@ -46,13 +47,7 @@ DisplayName    = %TimeDefuser.SVCDESC%
 ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
 StartType      = 0               ; SERVICE_BOOT_START
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
-ServiceBinary  = %11%\TimeDefuser.sys
-
-[TimeDefuser_Device.NT.Wdf]
-KmdfService = TimeDefuser, TimeDefuser_wdfsect
-
-[TimeDefuser_wdfsect]
-KmdfLibraryVersion = $KMDFVERSION$
+ServiceBinary  = %12%\TimeDefuser.sys
 
 [Strings]
 SPSVCINST_ASSOCSERVICE = 0x00000002
