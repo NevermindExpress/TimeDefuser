@@ -2,14 +2,14 @@
 TimeDefuser is a kernel-mode Windows driver that patches the kernel to neutralize the timebomb,
 which is seen on most prerelease builds that has been ever compiled.
 
-This patch patches the timebomb code itself in the kernel so it is the most effective way to neutralize it.
+This patch patches the timebomb code itself in the kernel so it is the most effective and applicable way to neutralize it, instead of activation patching which is not available in many builds.
 
-All builds are theoretically supported but not all builds are tested, see the end of this readme for screenshots.
+All builds are theoretically supported but not all builds are tested, see the notes for more info, or the end of this readme for screenshots.
 
-**Due to lack of attention this project will not be maintained anymore unless anyone ever makes a bug report about it not working.**
+Due to ~~lack of attention~~ nothing really left to do, this project is in maintenance mode and I will only fix bugs unless I find some fancy improvement ideas and energy & will to implement them.
 
 > [!WARNING]
-> This driver is intended to remove the **Windows expiration date only**
+> This driver is intended to remove the **Windows builds'** expiration date only
 
 It will not remove the expiration date of
 - Your abusive relationship
@@ -17,12 +17,29 @@ It will not remove the expiration date of
 - The Pepsi can from 1956 that is inside your fridge for whatever reason
 - Aceyware "Tracey" Operating System version 0.1.3
 - ???
+- Evalution retail Windows builds. While it theoretically should work, such configuration is not supported and any bug reports regarding to them will be closed without any further action.
 
 > [!IMPORTANT]
-> This driver will **not** patch Windows Product Activation or any other similar mechanism.
+> This driver will **not** patch Windows Product Activation or any other similar mechanism. These other mechanisms can be preferred as well in supported builds but I don't support them.
+
+# Notes Per Version
+### Windows 2000/XP 
+- Use legacy version with those.
+- Also note that alternative methods such as registry edits are available for those.
+- **I KNOW that they do, so don't come to say me "muh set GracePeriod to 0" or "muh use TweakNT"**. This tweak for NT 5.x exists more as proof of concept, and both this patch or other tweaks will do the work. 
+### Post-reset Windows Vista & Early 7 (later 7 is untested)
+- They suck. Avoid using these versions at all. After build expires, buggy WPA breaks the timebomb which makes this patch not get applied anyway, and shows the "Activate Windows" dialog which logs you off if you say no; considering that those builds can skip the windeploy and boot to OOBE/desktop at all in the first place. 
+- These builds are *wontfix* because there is nothing to fix/can be fixed in the first place. Blame Microsoft.
+- Alternative patch methods should be used for those.
+### Windows 8
+- Some builds such as 7880 has a partially broken timebomb that effectively gets disabled if you install at current date instead of rolling it back to pre-expiration before install.
+- Certain builds such as aforementioned are also subject to crashes by PatchGuard, while others such as the ones with the screenshots below are not.
+- Few builds can be patched with policy/spp files replacement. **Again, I KNOW 'THEY' CAN BE PATCHED**. "MUH FBL builds can be patched by doing X/can be used at current date without doing anything" oh really smartass? well, my thing can patch **ALL** versions (except ones that have superior PatchGuard) while your shit method can only fix a few builds. Fuck off back to r\*ddit or whatever forums you lurk at instead of trying to teach me my thing and spread bad name to my project.
+### Windows 10/11
+- Untested. Likely same as 8 unless KASLR is enabled, which is not supported by this driver.
 
 # Usage
-1. Enable test-signing
+1. Enable test-signing (and also disable driver signature enforcement at boot if you end up with boot recovery or signature error at boot)
 2. Download the latest release and obtain "devcon" utility (available in WDK).
 3. Execute "devcon install C:\Path\to\TimeDefuser.inf Root\TimeDefuser"
 4. Allow the installition and wait for "Driver Installition Complete" message
@@ -59,3 +76,4 @@ Builds with debug symbols are recommended to try, due to symbols making debuggin
 - **Microsoft** for Windows, Windbg and all else.
 - **archive.org and BetaArchive** for preserving beta builds and debug symbols.
 - **Dimitrios Vlachos** for motivational support.
+- All the precious testers that opened up issues.
