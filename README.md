@@ -6,8 +6,6 @@ This patch patches the timebomb code itself in the kernel so it is the most effe
 
 All builds are theoretically supported but not all builds are tested, see the notes for more info, or the end of this readme for screenshots.
 
-Due to ~~lack of attention~~ nothing really left to do, this project is in maintenance mode and I will only fix bugs unless I find some fancy improvement ideas and energy & will to implement them.
-
 > [!WARNING]
 > This driver is intended to remove the **Windows builds'** expiration date only
 
@@ -41,9 +39,10 @@ It will not remove the expiration date of
 # Usage
 1. Enable test-signing (and also disable driver signature enforcement at boot if you end up with boot recovery or signature error at boot)
 2. Download the latest release and obtain "devcon" utility (available in WDK).
-3. Execute "devcon install C:\Path\to\TimeDefuser.inf Root\TimeDefuser"
+3. Execute `devcon install C:\Path\to\TimeDefuser.inf Root\TimeDefuser`
 4. Allow the installition and wait for "Driver Installition Complete" message
 5. If your system didn't crash so far, check expiration date from "winver", if it's not there that means that it worked.
+6. If you want to/need to uninstall, execute `devcon remove Root\TimeDefuser` and reboot (or just delete the .sys file).
 
 # Testing and Bug Reporting
 The driver can either work correctly, crash the system, fail or work but not enough to fully patch the currently working system.
@@ -55,17 +54,29 @@ Driver logs will look like this when it works:
 Builds with debug symbols are recommended to try, due to symbols making debugging much easier.
 
 # Build
-## Windows 7 and Later
-1. Get the latest WDK 
-2. Open the solution 
-3. Hit the compile button.
-4. Get the TimeDefuser.inf and change the \$ARCH\$ to target architecture
-## Windows Vista and Earlier
-*Should also apply to later versions as long as a compatible WDK is used for target version.*
+## TimeDefuser Legacy for Windows 2000 and XP
+*Should also can be used to compile standard TimeDefuser to later versions as long as a compatible WDK is used for target version.*
 1. Get a WDK/DDK compatible with your target version.
 2. Open the build environment console
 3. Locate to source folder and execute "nmake"
-4. Get the TimeDefuser.inf (for Vista) or TimeDefuserLegacy.inf (for XP and earlier) and change the \$ARCH\$ to target architecture
+4. Get the TimeDefuser.inf (for Vista) or TimeDefuserLegacy.inf (for XP and earlier) and change the `$ARCH$` to target architecture
+## Windows 7 and Later with Visual Studio 2013 & Windows 8.1 WDK (And Vista??)
+1. Get the Windows 8.1 WDK (or anything earlier with it's conforming VS version) 
+2. Open the solution `TimeDefuser-vs13.sln`
+3. Hit the compile button.
+4. Get the TimeDefuser.inf and change the `$ARCH$` to target architecture
+## Windows 7* and Later with Visual Studio 2022 & Windows 11 WDK
+> [!WARNING]
+> \*: With Windows 11 WDK released in May 2025, Microsoft killed the support for 32-bit architectures, and for anything earlier than Windows 10 RTM.
+> If you have an earlier Windows 11 WDK installed, you can still build for 32-bit or for Windows 7-8.1; else you can only build for Windows 10 Post-RTM insiders.
+> Blame Microsoft for this. See https://github.com/NevermindExpress/TimeDefuser/issues/7
+>
+> In case of having the newest WDK, build will fail because of configuration still having the Windows 7 references. To fix it, you should set them to Windows 10 accordingly.
+1. Get the latest WDK 
+2. Open the solution `TimeDefuser.sln`
+3. Hit the compile button.
+4. Get the TimeDefuser.inf and change the `$ARCH$` to target architecture
+
 
 # Screenshots
 ![Windows 8175 x64-2025-05-04-16-05-34](https://github.com/user-attachments/assets/380167b9-e24a-458a-b5ba-597313c6bbd3)
