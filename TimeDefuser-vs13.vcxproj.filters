@@ -22,5 +22,5 @@
     <Inf Include="TimeDefuservs13.inf">
       <Filter>Driver Files</Filter>
     </Inf>
-  </ItemGroup>  
+  </ItemGroup>
 </Project>
