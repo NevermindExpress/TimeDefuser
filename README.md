@@ -49,7 +49,19 @@ The driver can either work correctly, crash the system, fail or work but not eno
 In all cases the usage of kernel debugger is required to tell which one of those cases happen, and also for why exactly the system crashes.
 
 Driver logs will look like this when it works:
-![image](https://github.com/user-attachments/assets/c141ba8e-38ac-4d14-8c85-71b0edd127bd)
+```
+[*] TimeDefuser: version 1.5 loaded | Compiled on Oct 13 2025 01:44:57 | https://github.com/NevermindExpress/TimeDefuser
+[+] TimeDefuser: SystemExpirationDate is 0x10B72980
+[+] TimeDefuser: Kernel Base address is 0x81090000 and size is 5038080
+[+] TimeDefuser: PAGE Section found at 0x81090478 with size 2164706
+[+] TimeDefuser: searching at 0x8123C000 in 2164706 bytes
+[+] TimeDefuser: searching at 0x8144D000 in 18976 bytes
+[+] TimeDefuser: searching at 0x81452000 in 77340 bytes
+[+] TimeDefuser: Potential TimeRef found at 0x81463037
+[+] TimeDefuser: ExGetExpirationDate found at 0x813DE8F9
+[*] TimeDefuser: Patch completed successfully.
+```
+[(same thing as an image)](https://github.com/user-attachments/assets/cc475da5-e624-45e3-aaf2-cd22a7e65a8b)
 
 Builds with debug symbols are recommended to try, due to symbols making debugging much easier.
 
