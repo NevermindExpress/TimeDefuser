@@ -16,6 +16,9 @@
     <Filter Include="Legacy">
       <UniqueIdentifier>{57df763d-2f9b-446c-afff-57a7a1d35d4c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{d069e4cc-5174-4291-a69f-99c702c57738}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="TimeDefuser.inf">
@@ -26,7 +29,7 @@
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Driver.cpp">
+    <ClCompile Include="Driver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DriverLegacy.c">
@@ -42,5 +45,10 @@
     <ResourceCompile Include="TimeDefuser.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TimeDefuser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

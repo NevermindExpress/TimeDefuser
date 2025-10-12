@@ -6,4 +6,4 @@ MSC_WARNING_LEVEL=-W3 -WX
 
 SOURCES= TimeDefuser.rc \
          DriverLegacy.c \
-		 Driver.cpp 
+		 Driver.c 

@@ -5,3 +5,5 @@ x64
 obj*
 Debug
 Release
+win*
+RC*
