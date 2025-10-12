@@ -53,7 +53,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING Reg
 #endif
 
 	// Print version info.
-	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser: version 1.4.1 loaded "
+	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[*] TimeDefuser: version 1.4.1.1 loaded "
 														"| Compiled on " __DATE__ " " __TIME__ " | https://github.com/NevermindExpress/TimeDefuser\n"));
 
 	// Get SystemExpirationDate

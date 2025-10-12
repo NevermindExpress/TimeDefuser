@@ -1,57 +1,75 @@
 ;
-; TimeDefuser.inf
+; TimeDefuser.inf - https://github.com/NevermindExpress/TimeDefuser
 ;
-; Inf compiler is currently disabled so you need to copy this and change $ARCH$ manually.
 
 [Version]
-Signature   = "$WINDOWS NT$"
-Class       = System ; TODO: specify appropriate Class
-ClassGuid   = {4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
-Provider    = %ManufacturerName%
-CatalogFile = TimeDefuser.cat
-DriverVer   = ; TODO: set DriverVer in stampinf property pages
-PnpLockdown = 1
+Signature     = "$WINDOWS NT$"
+Class         = System
+ClassGuid     = {4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider      = %ManufacturerName%
+CatalogFile   = TimeDefuser.cat
+DriverVer     = 10/12/2025,1.4.1.1
+PnpLockdown   = 1
 
 [DestinationDirs]
-DefaultDestDir = 12
+DefaultDestDir = 12 ; %SystemRoot%\System32\drivers
 
 [SourceDisksNames]
-1 = %DiskName%,,,""
+1 = %DiskName%
 
 [SourceDisksFiles]
-TimeDefuser.sys = 1,,
-
-;*****************************************
-; Install Section
-;*****************************************
+TimeDefuser-x86.sys   = 1
+TimeDefuser-amd64.sys = 1
 
 [Manufacturer]
-%ManufacturerName% = Standard,NT$ARCH$.6.0..
+%ManufacturerName% = Standard,NTx86,NTamd64
 
-[Standard.NT$ARCH$.6.0..]
-%TimeDefuser.DeviceDesc% = TimeDefuser_Device, Root\TimeDefuser
+[Standard.NTx86]
+%TimeDefuser.DeviceDesc% = TimeDefuser_Inst_x86, Root\TimeDefuser
 
-[TimeDefuser_Device.NT]
-CopyFiles = File_Copy
+[Standard.NTamd64]
+%TimeDefuser.DeviceDesc% = TimeDefuser_Inst_amd64, Root\TimeDefuser
 
-[File_Copy]
-TimeDefuser.sys
+;==============================
+; x86 Install Sections
+;==============================
+[TimeDefuser_Inst_x86]
+CopyFiles = CopyFiles_x86
 
-;-------------- Service installation
-[TimeDefuser_Device.NT.Services]
-AddService = TimeDefuser,%SPSVCINST_ASSOCSERVICE%, TimeDefuser_Service_Inst
+[TimeDefuser_Inst_x86.Services]
+AddService = TimeDefuser, 0x00000002, Service_Inst_x86
 
-; -------------- TimeDefuser driver install sections
-[TimeDefuser_Service_Inst]
+[CopyFiles_x86]
+TimeDefuser-x86.sys
+
+[Service_Inst_x86]
 DisplayName    = %TimeDefuser.SVCDESC%
-ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
-StartType      = 0               ; SERVICE_BOOT_START
-ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
-ServiceBinary  = %12%\TimeDefuser.sys
+ServiceType    = 1  ; SERVICE_KERNEL_DRIVER
+StartType      = 0  ; SERVICE_BOOT_START
+ErrorControl   = 1  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\TimeDefuser-x86.sys
+
+;==============================
+; amd64 Install Sections
+;==============================
+[TimeDefuser_Inst_amd64]
+CopyFiles = CopyFiles_amd64
+
+[TimeDefuser_Inst_amd64.Services]
+AddService = TimeDefuser, 0x00000002, Service_Inst_amd64
+
+[CopyFiles_amd64]
+TimeDefuser-amd64.sys
+
+[Service_Inst_amd64]
+DisplayName    = %TimeDefuser.SVCDESC%
+ServiceType    = 1 ; SERVICE_KERNEL_DRIVER
+StartType      = 0 ; SERVICE_BOOT_START
+ErrorControl   = 1 ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\TimeDefuser-amd64.sys
 
 [Strings]
-SPSVCINST_ASSOCSERVICE = 0x00000002
-ManufacturerName = "NevermindExpress@Aceyware (a.k.a. Lenna1327@BetaArchive)" ;TODO: Replace with your manufacturer name
-DiskName = "TimeDefuser Installation Disk"
+ManufacturerName      = "NevermindExpress"
+DiskName              = "TimeDefuser Installation Disk"
 TimeDefuser.DeviceDesc = "TimeDefuser"
-TimeDefuser.SVCDESC = "TimeDefuser Service"
+TimeDefuser.SVCDESC    = "TimeDefuser Service"

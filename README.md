@@ -1,5 +1,5 @@
 # TimeDefuser
-TimeDefuser is a kernel-mode Windows driver that patches the kernel to neutralize the timebomb,
+TimeDefuser is a kernel-mode Windows driver that patches the kernel to neutralize the expiration date (a.k.a. timebomb),
 which is seen on most prerelease builds that has been ever compiled.
 
 This patch patches the timebomb code itself in the kernel so it is the most effective and versatile way to neutralize it, instead of activation patching which is not available in many builds.
@@ -18,7 +18,7 @@ It will not remove the expiration date of
 - Evalution retail Windows builds. While it theoretically should work, such configuration is not supported and any bug reports regarding to them will be closed without any further action.
 
 > [!IMPORTANT]
-> This driver will **not** patch Windows Product Activation or any other similar mechanism. These other mechanisms can be preferred as well in supported builds but I don't support them.
+> This driver will **not** patch Windows Product Activation or any other similar mechanism. These other mechanisms can be preferred as well in supported builds but here is not their place.
 
 # Notes Per Version
 ### Windows 2000/XP 
@@ -59,12 +59,11 @@ Builds with debug symbols are recommended to try, due to symbols making debuggin
 1. Get a WDK/DDK compatible with your target version.
 2. Open the build environment console
 3. Locate to source folder and execute "nmake"
-4. Get the TimeDefuser.inf (for Vista) or TimeDefuserLegacy.inf (for XP and earlier) and change the `$ARCH$` to target architecture
+4. Get the TimeDefuserLegacy.inf and change the `$ARCH$` to target architecture.
 ## Windows 7 and Later with Visual Studio 2013 & Windows 8.1 WDK (And Vista??)
 1. Get the Windows 8.1 WDK (or anything earlier with it's conforming VS version) 
 2. Open the solution `TimeDefuser-vs13.sln`
 3. Hit the compile button.
-4. Get the TimeDefuser.inf and change the `$ARCH$` to target architecture
 ## Windows 7* and Later with Visual Studio 2022 & Windows 11 WDK
 > [!WARNING]
 > \*: With Windows 11 WDK released in May 2025, Microsoft killed the support for 32-bit architectures, and for anything earlier than Windows 10 RTM.
@@ -75,7 +74,6 @@ Builds with debug symbols are recommended to try, due to symbols making debuggin
 1. Get the latest WDK 
 2. Open the solution `TimeDefuser.sln`
 3. Hit the compile button.
-4. Get the TimeDefuser.inf and change the `$ARCH$` to target architecture
 
 
 # Screenshots
