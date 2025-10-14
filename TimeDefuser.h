@@ -4,7 +4,7 @@
 #include <ntddk.h>
 
 /// Definitions
-#define td_version "1.5"
+#define td_version "1.5.1"
 #define SystemModuleInformation 11
 #define PEheader 0x5a4d // MZ
 #define sectNamePAGEDATA	0x4154414445474150 // PAGEDATA

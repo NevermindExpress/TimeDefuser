@@ -9,6 +9,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 	ULONG KernelSize = 0;					// Kernel image size
 	unsigned int KernelSize2 = 0;			// Var used in loops as a max value
 	PAGESections ps[4] = { 0 };				// PE sections that name starts with "PAGE"
+	unsigned char* PotentialTimestamp;		// Potential address of ExNtExpirationDate/a
 
 	// Unrefence unused variables.
 	UNREFERENCED_PARAMETER(DriverObject);
@@ -42,6 +43,65 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 		TDPrint("[X] TimeDefuser: PE Header not found!\n");
 		goto patchFail;
 	}
+
+	PotentialTimestamp = (unsigned char*)KernelBase;
+
+	// Search for "PAGEDATA" section at PE sections. This section is where the 
+	// ExpNtExpirationDate timestamp variable is located at, so we are going 
+	// to use its RVA and size for finding the function location.
+
+	for (size_t i = 0; i < 768; i++) {
+		if (KernelBase[i] == sectNamePAGEDATA) { // Check if we found the PAGEDATA section name.
+			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: PAGEDATA Section found at 0x%p with size %d\n", &KernelBase[i], *(int*)&KernelBase[i + 1]));
+			KernelSize2 = *(int*)&KernelBase[i + 1]; // Get the section size
+			// Get the function RVA and append it to kernel base address.
+			int* asd = (int*)&KernelBase[i + 1];
+			PotentialTimestamp += asd[1];
+			break;
+		}
+	}
+	if (PotentialTimestamp == (unsigned char*)KernelBase) {
+		KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser: PAGEDATA Section not found!\n"));
+		goto patchFail;
+	}
+
+	// Search for timebomb stamp in memory
+	CHAR occurance = FALSE;
+	void* pExpNtExpirationDate = NULL;
+
+	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: searching for stamp at 0x%p in %d bytes\n", PotentialTimestamp, KernelSize2));
+
+	KernelSize2;
+	for (size_t i = 0; i < KernelSize2; i++) {
+		if (*(unsigned long long*) & PotentialTimestamp[i] == TimebombStamp) {
+			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: Timebomb stamp found at 0x%p\n", &PotentialTimestamp[i]));
+			*(unsigned long long*)(&PotentialTimestamp[i]) = 0;
+			pExpNtExpirationDate = &PotentialTimestamp[i];
+
+			if (occurance) {
+				pExpNtExpirationDate = &PotentialTimestamp[i];
+				occurance = 2;
+				break;
+			}
+			else occurance = 1;
+		}
+	}
+
+	// Print the address according to occurrance.
+	switch (occurance) {
+		case 0:
+			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser: can't find ExpNtExpirationDate!\n"));
+			goto patchFail; break;
+		case 1:
+			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (first occurrance)\n", pExpNtExpirationDate));
+			break;
+		case 2:
+			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (second occurrance)\n", pExpNtExpirationDate));
+			break;
+	}
+
+	const __int64 sectNamePAGELK = 0x0000000045474150; // "PAGE\0\0\0\0"
+
 
 	// Search for PAGE section at PE sections. This section or one of the next three sections is where the 
 	// "ExpTimeRefreshWork" function is located at, which later calls a function named "ExGetExpirationDate".

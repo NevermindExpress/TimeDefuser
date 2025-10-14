@@ -8,7 +8,7 @@ Class         = System
 ClassGuid     = {4d36e97d-e325-11ce-bfc1-08002be10318}
 Provider      = %ManufacturerName%
 CatalogFile   = TimeDefuser.cat
-DriverVer     = 10/12/2025,1.4.1.1
+DriverVer     = 10/15/2025,1.5.1.0
 PnpLockdown   = 1
 
 [DestinationDirs]
