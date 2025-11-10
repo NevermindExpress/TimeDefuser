@@ -2,7 +2,7 @@
 TimeDefuser is a kernel-mode Windows driver that patches the kernel to neutralize the expiration date (a.k.a. timebomb),
 which is seen on most prerelease builds that has been ever compiled.
 
-This patch patches the timebomb code itself in the kernel so it is the most effective and versatile way to neutralize it, instead of activation patching which is not available in many builds.
+This patch patches the timebomb code itself in the kernel so it is the most effective and versatile way to neutralize it, instead of activation patching (i.e. policy files or registry editing) which is not available in many builds.
 
 All builds are theoretically supported but not all builds are tested, see the notes for more info, or the end of this readme for screenshots.
 
@@ -34,11 +34,14 @@ It will not remove the expiration date of
 - Certain builds such as aforementioned are also subject to crashes by PatchGuard, while others such as the ones with the screenshots below are not. See https://github.com/NevermindExpress/TimeDefuser/issues/5#issuecomment-3369399950
 - Few builds can be patched with policy/spp files replacement. **Again, I KNOW 'THEY' CAN BE PATCHED**. "MUH FBL builds can be patched by doing X/can be used at current date without doing anything" well, my thing can patch **ALL** versions (except ones that have superior PatchGuard) while your method can only fix a few builds.
 ### Windows 10/11
-- Untested. Likely same as 8 unless KASLR is enabled, which is not supported by this driver.
+> [!IMPORTANT]
+> Windows 10 builds are also subject to flight signing, which are code signatures that gets invalid after expiration date, thus preventing system from booting or to be used properly. 
+> Getting over this requires additional work (resigning all binaries and disabling integrity checks, or patching bootloader & ci.dll) which is not covered by this project.
+- Works on pre-RTM, post-RTM ("insider") builds are untested but they likely are same as pre-RTM unless KASLR is enabled, which is not supported by this driver.
 
 # Usage
-1. Enable test-signing (and also disable driver signature enforcement at boot if you end up with boot recovery or signature error at boot)
-2. Download the latest release and obtain "devcon" utility (available in WDK).
+1. Enable test-signing (disabling driver signature enforcement might also be necessary.)
+2. Download the latest release and obtain "devcon" utility (available in WDK and also in some .cab files).
 3. Execute `devcon install C:\Path\to\TimeDefuser.inf Root\TimeDefuser`
 4. Allow the installition and wait for "Driver Installition Complete" message
 5. If your system didn't crash so far, check expiration date from "winver", if it's not there that means that it worked.
@@ -50,18 +53,21 @@ In all cases the usage of kernel debugger is required to tell which one of those
 
 Driver logs will look like this when it works:
 ```
-[*] TimeDefuser: version 1.5 loaded | Compiled on Oct 13 2025 01:44:57 | https://github.com/NevermindExpress/TimeDefuser
-[+] TimeDefuser: SystemExpirationDate is 0x10B72980
-[+] TimeDefuser: Kernel Base address is 0x81090000 and size is 5038080
-[+] TimeDefuser: PAGE Section found at 0x81090478 with size 2164706
-[+] TimeDefuser: searching at 0x8123C000 in 2164706 bytes
-[+] TimeDefuser: searching at 0x8144D000 in 18976 bytes
-[+] TimeDefuser: searching at 0x81452000 in 77340 bytes
-[+] TimeDefuser: Potential TimeRef found at 0x81463037
-[+] TimeDefuser: ExGetExpirationDate found at 0x813DE8F9
+[*] TimeDefuser: version 1.5.2 loaded | Compiled on Nov 10 2025 12:13:16 | https://github.com/NevermindExpress/TimeDefuser
+[+] TimeDefuser: SystemExpirationDate is 0x1d0fca547506980
+[+] TimeDefuser: Kernel Base address is 0xFFFFF802D388C000 and size is 8658944
+[+] TimeDefuser: PAGEDATA Section found at 0xFFFFF802D388C488 with size 62464
+[+] TimeDefuser: searching for stamp at 0xFFFFF802D3FF5000 in 62464 bytes
+[+] TimeDefuser: Timebomb stamp found at 0xFFFFF802D3FF5A10
+[+] TimeDefuser: ExpNtExpirationDate address is 0xFFFFF802D3FF5A10 (first occurrance)
+[+] TimeDefuser: PAGELK Section found at 0xFFFFF802D388C348 with size 98932
+[+] TimeDefuser: searching at 0xFFFFF802D3C62000 in 98932 bytes
+[+] TimeDefuser: Potential TimeRef found at 0xFFFFF802D3C63638
+[+] TimeDefuser: ExGetExpirationDate found at 0xFFFFF802D3E02BB4
 [*] TimeDefuser: Patch completed successfully.
 ```
-[(same thing as an image)](https://github.com/user-attachments/assets/cc475da5-e624-45e3-aaf2-cd22a7e65a8b)
+[(same thing as an image)](https://github.com/user-attachments/assets/7e48a48e-a2dc-4872-8825-6aa98df641e3)
+
 
 Builds with debug symbols are recommended to try, due to symbols making debugging much easier.
 
@@ -89,9 +95,10 @@ Builds with debug symbols are recommended to try, due to symbols making debuggin
 
 
 # Screenshots
-![Windows 8175 x64-2025-05-04-16-05-34](https://github.com/user-attachments/assets/380167b9-e24a-458a-b5ba-597313c6bbd3)
 ![Windows 7973 x64-2025-05-04-16-08-40](https://github.com/user-attachments/assets/f3d3a116-5b67-4b8f-bd4c-d907485a435b)
+![Windows 10072 x64-2025-11-10-12-53-19](https://github.com/user-attachments/assets/02bb0087-762a-4a2b-98c9-16b3bf850a0d)
 ![Windows 2526-2025-05-08-17-39-56](https://github.com/user-attachments/assets/24e4f5c9-5cdc-4eae-b91f-dc13bb93a22c)
+
 
 # Thanks to
 - **Microsoft** for Windows, Windbg and all else.

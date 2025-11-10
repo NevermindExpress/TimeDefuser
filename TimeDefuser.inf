@@ -8,7 +8,7 @@ Class         = System
 ClassGuid     = {4d36e97d-e325-11ce-bfc1-08002be10318}
 Provider      = %ManufacturerName%
 CatalogFile   = TimeDefuser.cat
-DriverVer     = 10/15/2025,1.5.1.0
+DriverVer     = 11/10/2025,1.5.2.0
 PnpLockdown   = 1
 
 [DestinationDirs]
@@ -45,7 +45,7 @@ TimeDefuser-x86.sys
 [Service_Inst_x86]
 DisplayName    = %TimeDefuser.SVCDESC%
 ServiceType    = 1  ; SERVICE_KERNEL_DRIVER
-StartType      = 0  ; SERVICE_BOOT_START
+StartType      = 3  ; SERVICE_DEMAND_START
 ErrorControl   = 1  ; SERVICE_ERROR_NORMAL
 ServiceBinary  = %12%\TimeDefuser-x86.sys
 
@@ -64,7 +64,7 @@ TimeDefuser-amd64.sys
 [Service_Inst_amd64]
 DisplayName    = %TimeDefuser.SVCDESC%
 ServiceType    = 1 ; SERVICE_KERNEL_DRIVER
-StartType      = 0 ; SERVICE_BOOT_START
+StartType      = 3 ; SERVICE_DEMAND_START
 ErrorControl   = 1 ; SERVICE_ERROR_NORMAL
 ServiceBinary  = %12%\TimeDefuser-amd64.sys
 

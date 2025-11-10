@@ -8,7 +8,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 	unsigned long long* KernelBase = NULL;	// Kernel Base address
 	ULONG KernelSize = 0;					// Kernel image size
 	unsigned int KernelSize2 = 0;			// Var used in loops as a max value
-	PAGESections ps[4] = { 0 };				// PE sections that name starts with "PAGE"
+	PAGESections ps[5] = { 0 };				// PE sections that name starts with "PAGE"
 	unsigned char* PotentialTimestamp;		// Potential address of ExNtExpirationDate/a
 
 	// Unrefence unused variables.
@@ -100,21 +100,18 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 			break;
 	}
 
-	const __int64 sectNamePAGELK = 0x0000000045474150; // "PAGE\0\0\0\0"
-
-
 	// Search for PAGE section at PE sections. This section or one of the next three sections is where the 
 	// "ExpTimeRefreshWork" function is located at, which later calls a function named "ExGetExpirationDate".
 	// Due to it's variable being, we will search the PAGE section and next three sections.
 
 	for (size_t i = 0; i < 768; i++) {
-		if (KernelBase[i] == sectNamePAGE) { // Check if we found the PAGE\0\0\0\0 section name.
-			TDPrint("[+] TimeDefuser: PAGE Section found at 0x%p with size %d\n", &KernelBase[i], *(int*)&KernelBase[i + 1]);
+		if (KernelBase[i] == sectNamePAGELK) { // Check if we found the PAGELK\0\0 section name.
+			TDPrint("[+] TimeDefuser: PAGELK Section found at 0x%p with size %d\n", &KernelBase[i], *(int*)&KernelBase[i + 1]);
 			int* temp = (int*)&KernelBase[i + 1];
 			ps[0].size = temp[0]; // Get the section size
 			ps[0].RVA = temp[1];  // and RVA
 			// Get the RVA and size of next three sections.
-			for (char j = 1; j < 4; j++) {
+			for (char j = 1; j < 5; j++) {
 				temp += 10;
 				ps[j].size = temp[0]; // Get the section size
 				ps[j].RVA = temp[1];  // and RVA
@@ -124,7 +121,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 	}
 
 	if (!ps[0].size) {
-		TDPrint("[X] TimeDefuser: PAGE Section not found!\n");
+		TDPrint("[X] TimeDefuser: PAGELK Section not found!\n");
 		goto patchFail;
 	}
 
