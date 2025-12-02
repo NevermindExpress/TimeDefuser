@@ -159,15 +159,15 @@
     </DriverSign>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Inf Include="TimeDefuser.inf" />
-    <Inf Include="TimeDefuserLegacy.inf" />
+    <Inf Include="src\TimeDefuser.inf" />
+    <Inf Include="src\TimeDefuserLegacy.inf" />
   </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Driver.c" />
-    <ClCompile Include="DriverLegacy.c">
+    <ClCompile Include="src\Driver.c" />
+    <ClCompile Include="src\DriverLegacy.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
@@ -180,10 +180,10 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="TimeDefuser.rc" />
+    <ResourceCompile Include="src\TimeDefuser.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TimeDefuser.h" />
+    <ClInclude Include="src\TimeDefuser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

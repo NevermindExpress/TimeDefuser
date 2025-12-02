@@ -1,4 +1,4 @@
-# TimeDefuser
+﻿# TimeDefuser
 TimeDefuser is a kernel-mode Windows driver that patches the kernel to neutralize the expiration date (a.k.a. timebomb),
 which is seen on most prerelease builds that has been ever compiled.
 
@@ -13,9 +13,9 @@ It will not remove the expiration date of
 - Your abusive relationship
 - 100-minute Minecraft demo
 - The Pepsi can from 1956 that is inside your fridge for whatever reason
-- Aceyware "Tracey" Operating System version 0.1.3
+- Aceyware "Tracey" Operating System version 0.1.3 (or whatever its name ends up being)
 - ???
-- Evalution retail Windows builds. While it theoretically should work, such configuration is not supported and any bug reports regarding to them will be closed without any further action.
+- Evaluation retail Windows builds. While it theoretically should work, such configuration is not supported and any bug reports regarding to them will be closed without any further action.
 
 > [!IMPORTANT]
 > This driver will **not** patch Windows Product Activation or any other similar mechanism. These other mechanisms can be preferred as well in supported builds but here is not their place.
@@ -72,16 +72,14 @@ Driver logs will look like this when it works:
 Builds with debug symbols are recommended to try, due to symbols making debugging much easier.
 
 # Build
-## TimeDefuser Legacy for Windows 2000 and XP
-*Should also can be used to compile standard TimeDefuser to later versions as long as a compatible WDK is used for target version.*
-1. Get a WDK/DDK compatible with your target version.
-2. Open the build environment console
-3. Locate to source folder and execute "nmake"
-4. Get the TimeDefuserLegacy.inf and change the `$ARCH$` to target architecture.
-## Windows 7 and Later with Visual Studio 2013 & Windows 8.1 WDK (And Vista??)
-1. Get the Windows 8.1 WDK (or anything earlier with it's conforming VS version) 
+Starting with version 1.6, Visual Studio 2013 can build both variants 
+and support every Windows version by having appopriate minimum subsystem version set. 
+With this change, building with old WDKs (7.1 and older) is completely removed
+## Every Windows version with Visual Studio 2013 & Windows 8.1 WDK
+1. Get the VS 2013 & Windows 8.1 WDK
 2. Open the solution `TimeDefuser-vs13.sln`
-3. Hit the compile button.
+3. Select the appopriate build configuration for your needs (architecture and standard/legacy configurations.)
+4. Hit the compile button.
 ## Windows 7* and Later with Visual Studio 2022 & Windows 11 WDK
 > [!WARNING]
 > \*: With Windows 11 WDK released in May 2025, Microsoft killed the support for 32-bit architectures, and for anything earlier than Windows 10 RTM.
@@ -93,15 +91,13 @@ Builds with debug symbols are recommended to try, due to symbols making debuggin
 2. Open the solution `TimeDefuser.sln`
 3. Hit the compile button.
 
-
 # Screenshots
 ![Windows 7973 x64-2025-05-04-16-08-40](https://github.com/user-attachments/assets/f3d3a116-5b67-4b8f-bd4c-d907485a435b)
 ![Windows 10072 x64-2025-11-10-12-53-19](https://github.com/user-attachments/assets/02bb0087-762a-4a2b-98c9-16b3bf850a0d)
 ![Windows 2526-2025-05-08-17-39-56](https://github.com/user-attachments/assets/24e4f5c9-5cdc-4eae-b91f-dc13bb93a22c)
 
-
 # Thanks to
 - **Microsoft** for Windows, Windbg and all else.
 - **archive.org and BetaArchive** for preserving beta builds and debug symbols.
 - **Dimitrios Vlachos** for motivational support.
-- All the precious testers that opened up issues.
+- **All the precious testers** that opened up issues.

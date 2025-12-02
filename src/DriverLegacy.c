@@ -8,8 +8,7 @@
 ///
 
 #include <ntddk.h>
-#if NTDDI_VERSION < 0x06000000
-#define TD_LEGACY
+#ifdef TD_LEGACY
 #include "TimeDefuser.h"
 
 NTSTATUS DriverEntry (PDRIVER_OBJECT  DriverObject, PUNICODE_STRING UniRegistryPath); // Required for the pragma below.
@@ -20,20 +19,16 @@ NTSTATUS DriverEntry (PDRIVER_OBJECT  DriverObject, PUNICODE_STRING UniRegistryP
 
 
 NTSTATUS DriverEntry (PDRIVER_OBJECT  DriverObject, PUNICODE_STRING UniRegistryPath) {
-	NTSTATUS status = STATUS_SUCCESS; // NTSTATUS variable to record success or failure
 	unsigned __int64 TimebombStamp; // Timebomb date stamp for saving
 	RTL_PROCESS_MODULES ModuleInfo; // For getting kernel base address.
 	unsigned __int64* KernelBase; // Kernel base address.
 	ULONG KernelSize; // Kernel image size.
-	void* pExpNtExpirationDate; // Address of expiration date stored internally in kernel, asides of kuser.
 	size_t i; // Counter for "for" loops.
 	LARGE_INTEGER* li = KUSERSystemExpirationDate	// Address of SystemExpirationDate field at KUSER_SHARED_DATA
 
     UNREFERENCED_PARAMETER (UniRegistryPath);
 	UNREFERENCED_PARAMETER (DriverObject);
 	
-
-
 	// Print version info.
 	TDPrint("[*] TimeDefuser: version " td_version " (legacy) loaded "
 			"| Compiled on " __DATE__ " " __TIME__ " "

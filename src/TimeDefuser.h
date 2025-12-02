@@ -4,10 +4,11 @@
 #include <ntddk.h>
 
 /// Definitions
-#define td_version "1.5.1"
+#define td_version "1.6"
 #define SystemModuleInformation 11
 #define PEheader 0x5a4d // MZ
-#define sectNamePAGEDATA	0x4154414445474150 // PAGEDATA
+#define sectNamePAGEDATA	0x4154414445474150 // "PAGEDATA"
+#define sectNamePAGELK		0x00004B4C45474150 // "PAGELK\0\0"
 #define sectNamePAGE		0x0000000045474150 // "PAGE\0\0\0\0"
 
 #if defined(AMD64)

@@ -1,4 +1,4 @@
-﻿#if NTDDI_VERSION >= 0x06000000
+﻿#ifndef TD_LEGACY
 #include "TimeDefuser.h"
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) {

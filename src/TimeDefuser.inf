@@ -1,0 +1,134 @@
+;
+; TimeDefuser.inf - https://github.com/NevermindExpress/TimeDefuser
+;
+
+;==============================
+; General Information
+;==============================
+[Version]
+Signature     = "$WINDOWS NT$"
+Class         = System
+ClassGuid     = {4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider      = %ManufacturerName%
+CatalogFile   = TimeDefuser.cat
+DriverVer     = 12/03/2025,1.6
+PnpLockdown   = 1
+
+[DestinationDirs]
+DefaultDestDir = 12 ; %SystemRoot%\System32\drivers
+
+[SourceDisksNames]
+1 = %DiskName%
+
+[SourceDisksFiles]
+TimeDefuser-x86.sys   = 1
+TimeDefuser-amd64.sys = 1
+TimeDefuser-Legacy-x86.sys   = 1
+TimeDefuser-Legacy-amd64.sys = 1
+
+;==============================
+; OS-specific Information
+;==============================
+[Manufacturer]
+%ManufacturerName% = Standard,NTx86.6.0,NTamd64.6.0,NTx86,NTamd64
+
+[Standard.NTx86.6.0]
+%TimeDefuser.DeviceDesc.x86% = TimeDefuser_Inst_x86, Root\TimeDefuser
+
+[Standard.NTamd64.6.0]
+%TimeDefuser.DeviceDesc.amd64% = TimeDefuser_Inst_amd64, Root\TimeDefuser
+
+[Standard.NTx86]
+%TimeDefuser.LDeviceDesc.x86L% = TimeDefuser_Inst_x86_Legacy, Root\TimeDefuser
+
+[Standard.NTamd64]
+%TimeDefuser.LDeviceDesc.amd64L% = TimeDefuser_Inst_amd64_Legacy, Root\TimeDefuser
+
+;==============================
+; x86 Install Sections
+;==============================
+[TimeDefuser_Inst_x86]
+CopyFiles = CopyFiles_x86
+
+[TimeDefuser_Inst_x86.Services]
+AddService = TimeDefuser, 0x00000002, Service_Inst_x86
+
+[CopyFiles_x86]
+TimeDefuser-x86.sys
+
+[Service_Inst_x86]
+DisplayName    = %TimeDefuser.SVCDESC%
+ServiceType    = 1  ; SERVICE_KERNEL_DRIVER
+StartType      = 3  ; SERVICE_DEMAND_START
+ErrorControl   = 1  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\TimeDefuser-x86.sys
+
+;==============================
+; amd64 Install Sections
+;==============================
+[TimeDefuser_Inst_amd64]
+CopyFiles = CopyFiles_amd64
+
+[TimeDefuser_Inst_amd64.Services]
+AddService = TimeDefuser, 0x00000002, Service_Inst_amd64
+
+[CopyFiles_amd64]
+TimeDefuser-amd64.sys
+
+[Service_Inst_amd64]
+DisplayName    = %TimeDefuser.SVCDESC%
+ServiceType    = 1 ; SERVICE_KERNEL_DRIVER
+StartType      = 3 ; SERVICE_DEMAND_START
+ErrorControl   = 1 ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\TimeDefuser-amd64.sys
+
+;==============================
+; x86 Legacy Install Sections
+;==============================
+[TimeDefuser_Inst_x86_Legacy]
+CopyFiles = CopyFiles_x86_Legacy
+
+[TimeDefuser_Inst_x86_Legacy.Services]
+AddService = TimeDefuser, 0x00000002, Service_Inst_x86_Legacy
+
+[CopyFiles_x86_Legacy]
+TimeDefuser-Legacy-x86.sys
+
+[Service_Inst_x86_Legacy]
+DisplayName    = %TimeDefuser.SVCDESC%
+ServiceType    = 1  ; SERVICE_KERNEL_DRIVER
+StartType      = 3  ; SERVICE_DEMAND_START
+ErrorControl   = 1  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\TimeDefuser-x86-Legacy.sys
+
+;==============================
+; amd64 Legacy Install Sections
+;==============================
+[TimeDefuser_Inst_amd64_Legacy]
+CopyFiles = CopyFiles_amd64_Legacy
+
+[TimeDefuser_Inst_amd64_Legacy.Services]
+AddService = TimeDefuser, 0x00000002, Service_Inst_amd64
+
+[CopyFiles_amd64_Legacy]
+TimeDefuser-Legacy-amd64.sys
+
+[Service_Inst_amd64_Legacy]
+DisplayName    = %TimeDefuser.LSVCDESC%
+ServiceType    = 1 ; SERVICE_KERNEL_DRIVER
+StartType      = 3 ; SERVICE_DEMAND_START
+ErrorControl   = 1 ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\TimeDefuser-amd64-Legacy.sys
+
+;==============================
+; General Strings
+;==============================
+[Strings]
+ManufacturerName      = "NevermindExpress"
+DiskName              = "TimeDefuser Installation Disk"
+TimeDefuser.DeviceDesc.x86 = "TimeDefuser (x86)"
+TimeDefuser.DeviceDesc.amd64 = "TimeDefuser (AMD64)"
+TimeDefuser.DeviceDesc.x86L = "TimeDefuser (x86 Legacy)"
+TimeDefuser.DeviceDesc.amd64L = "TimeDefuser (AMD64 Legacy)"
+TimeDefuser.SVCDESC    = "TimeDefuser Service"
+TimeDefuser.LSVCDESC    = "TimeDefuser Legacy Service"
