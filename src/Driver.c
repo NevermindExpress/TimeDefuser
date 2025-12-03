@@ -1,5 +1,4 @@
-﻿#ifndef TD_LEGACY
-#include "TimeDefuser.h"
+﻿#include "TimeDefuser.h"
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) {
 	LARGE_INTEGER* li = KUSERSystemExpirationDate; // Address of SystemExpirationDate field at KUSER_SHARED_DATA
@@ -7,16 +6,18 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 	RTL_PROCESS_MODULES ModuleInfo = { 0 };	// Structure used for getting kernel base address
 	unsigned long long* KernelBase = NULL;	// Kernel Base address
 	ULONG KernelSize = 0;					// Kernel image size
+#ifndef TD_LEGACY
 	unsigned int KernelSize2 = 0;			// Var used in loops as a max value
 	PAGESections ps[5] = { 0 };				// PE sections that name starts with "PAGE"
-	unsigned char* PotentialTimestamp;		// Potential address of ExNtExpirationDate/a
+	unsigned char* PotentialTimestamp = NULL;// Potential address of ExNtExpirationDate/a
+#endif
 
 	// Unrefence unused variables.
 	UNREFERENCED_PARAMETER(DriverObject);
 	UNREFERENCED_PARAMETER(RegistryPath);
 
 	// Print version info.
-	TDPrint("[*] TimeDefuser: version " td_version " loaded "
+	TDPrint("[*] TimeDefuser: version " td_version td_variant" loaded "
 			"| Compiled on " __DATE__ " " __TIME__ " "
 			"| https://github.com/NevermindExpress/TimeDefuser\n");
 
@@ -38,6 +39,31 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 	KernelSize = ModuleInfo.Modules[0].ImageSize; 
 	TDPrint("[+] TimeDefuser: Kernel Base address is 0x%p and size is %lu\n", KernelBase, KernelSize);
 
+#ifdef TD_LEGACY
+	// Search for timebomb stamp in memory
+	KernelSize /= sizeof(unsigned __int64);
+	for (unsigned int i = 0; i < KernelSize; i++) {
+		if (KernelBase[i] == TimebombStamp) {
+			TDPrint("[+] TimeDefuser: ExpNtExpirationDate found at 0x%p\n", &KernelBase[i]);
+			KernelBase[i] = 0;
+			// For some reason actual timebomb was the next qword on XP 2526, I'll save this and search for it again.
+			TimebombStamp = KernelBase[i + 1]; // Save the lower part of stamp.
+			KernelBase[i + 1] = 0; // And null where I found it too.
+			break;
+		}
+	}
+
+	// Search for the second stamp, ExpNtExpirationData (and not Date)
+	for (unsigned int i = 0; i < KernelSize; i++) {
+		if ((int)KernelBase[i] == (int)TimebombStamp) {
+			TDPrint("[+] TimeDefuser: ExpNtExpirationData found at 0x%p\n", &KernelBase[i]);
+			RtlZeroMemory(&KernelBase[i], 16);
+			goto patchOK;
+		}
+	}
+	// That's all for legacy implementation, get out.
+
+#else
 	// Check for PE Header existance.
 	if (*(short*)KernelBase != PEheader) {
 		TDPrint("[X] TimeDefuser: PE Header not found!\n");
@@ -175,6 +201,9 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 	}
 	// No references found so far so we fail.
 	TDPrint("[X] TimeDefuser: could not find ExpTimeRefreshWork!\n");
+
+#endif
+
 patchFail:
 	TDPrint("[X] TimeDefuser: Patch failed.\n");
 	return STATUS_FAILED_DRIVER_ENTRY;
@@ -187,4 +216,3 @@ patchOK:
 	TDPrint("[*] TimeDefuser: Patch completed successfully.\n");
 	return STATUS_SUCCESS;
 }
-#endif

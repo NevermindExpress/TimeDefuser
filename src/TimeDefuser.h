@@ -4,7 +4,13 @@
 #include <ntddk.h>
 
 /// Definitions
-#define td_version "1.6"
+#define td_version "1.6.1"
+#ifdef TD_LEGACY
+	#define td_variant " (Legacy)"
+#else
+	#define td_variant ""
+#endif
+
 #define SystemModuleInformation 11
 #define PEheader 0x5a4d // MZ
 #define sectNamePAGEDATA	0x4154414445474150 // "PAGEDATA"
