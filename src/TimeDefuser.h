@@ -1,10 +1,11 @@
 ﻿/// General definitions for TimeDefuser
 
-/// Includes (only one)
+/// Includes
 #include <ntddk.h>
+#include <ntstrsafe.h>
 
 /// Definitions
-#define td_version "1.6.1"
+#define td_version "1.7"
 #ifdef TD_LEGACY
 	#define td_variant " (Legacy)"
 #else
@@ -59,6 +60,13 @@ extern __kernel_entry NTSTATUS NTAPI ZwQuerySystemInformation(
 	ULONG SystemInformationLength,
 	PULONG ReturnLength OPTIONAL
 );
+
+/// TimeDefuser Registry Functions
+HANDLE OpenRegistryKey(PUNICODE_STRING KeyPath);
+NTSTATUS RegWriteDword(HANDLE hKey, PCWSTR ValueName, ULONG Data);
+ULONG RegReadValue(_In_ HANDLE KeyHandle, _In_ PCWSTR ValueName, _Out_ PVOID ValueOutput, _In_ ULONG ValueOutputSz);
+NTSTATUS SaveKernelVersion(_In_ HANDLE hKey);
+BOOLEAN CompareKernelVersion(_In_ HANDLE hKey);
 
 /// TimeDefuser macros
 #define TDPrint(...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, ##__VA_ARGS__);
