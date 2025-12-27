@@ -1,7 +1,7 @@
 ﻿#include "TimeDefuser.h"
 
 #ifndef TD_LEGACY
-BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate){
+BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	PMDL mdl = NULL;
 	void* map = NULL;
 	// Create a MDL paging to get over write protection.
@@ -106,9 +106,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 #endif
 			goto patchOK;
 		}
-		else {
-			// Kernel version mismatch.
-		}
+		// Kernel version mismatch.
 	}
 patchBeginning:
 	TDPrint("[*] TimeDefuser: No or mismatching cached addresses are found on registry.\n");
@@ -154,11 +152,11 @@ patchBeginning:
 
 	for (size_t i = 0; i < 768; i++) {
 		if (KernelBase[i] == sectNamePAGEDATA) { // Check if we found the PAGEDATA section name.
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: PAGEDATA Section found at 0x%p with size %d\n", &KernelBase[i], *(int*)&KernelBase[i + 1]));
 			KernelSize2 = *(int*)&KernelBase[i + 1]; // Get the section size
 			// Get the function RVA and append it to kernel base address.
 			int* asd = (int*)&KernelBase[i + 1];
 			PotentialTimestamp += asd[1];
+			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: PAGEDATA Section found at 0x%p with size %d\n", PotentialTimestamp, *(int*)&KernelBase[i + 1]));
 			break;
 		}
 	}
@@ -212,10 +210,10 @@ patchBeginning:
 
 	for (size_t i = 0; i < 768; i++) {
 		if (KernelBase[i] == sectNamePAGELK) { // Check if we found the PAGELK\0\0 section name.
-			TDPrint("[+] TimeDefuser: PAGELK Section found at 0x%p with size %d\n", &KernelBase[i], *(int*)&KernelBase[i + 1]);
 			int* temp = (int*)&KernelBase[i + 1];
 			ps[0].size = temp[0]; // Get the section size
 			ps[0].RVA = temp[1];  // and RVA
+			TDPrint("[+] TimeDefuser: PAGELK Section found at 0x%p with size %d\n", (unsigned char*)KernelBase + temp[1], temp[0]);
 			// Get the RVA and size of next three sections.
 			for (char j = 1; j < 5; j++) {
 				temp += 10;
@@ -246,15 +244,25 @@ patchBeginning:
 				// The call to ExGetExpirationDate is a few instructions before this reference
 				// So we search backwards for any CALL instruction (0xe8)
 				for (unsigned char j = 0; j < 100; j++) {
-					if (*(unsigned char*)&PotentialTimeRef[i - j] == 0xe8) { // CALL instruction found.
+					if (PotentialTimeRef[i - j] == 0xe8) { // CALL instruction found.
+						TDPrint("[+] TimeDefuser: CALL instruction found at 0x%p\n", &PotentialTimeRef[i - j]);
 						unsigned char* pExGetExpirationDate = &PotentialTimeRef[i - j + 5];
 						pExGetExpirationDate += *(unsigned int*)&PotentialTimeRef[i - j + 1]; // Next 4 bytes are relative address to our current location.
 						RegWriteDword(hKey, L"Function", (ULONG)(pExGetExpirationDate - (unsigned char*)KernelBase));
+						// Check if we are running at one of shit builds, refer to ExGetExpirationDateShim.
+						if (!MmIsAddressValid(pExGetExpirationDate)) {
+							TDPrint("[*] TimeDefuser: Invalid address, skipping this one...\n", pExGetExpirationDate);
+							continue;
+						}
+
 						TDPrint("[+] TimeDefuser: ExGetExpirationDate found at 0x%p\n", pExGetExpirationDate);
 						if (!PatchExGetExpirationDate(pExGetExpirationDate))
 							goto patchFail;
-						else 
+						else {
 							goto patchOK;
+						}
+
+
 					}
 				}
 				break;

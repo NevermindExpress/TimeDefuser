@@ -25,10 +25,12 @@ It will not remove the expiration date of
 - Use legacy version with those.
 - Also note that alternative methods such as registry edits are available for those.
 - **I KNOW that they do, so don't come to say me "muh set GracePeriod to 0" or "muh use TweakNT"**. This tweak for NT 5.x exists more as proof of concept, and both this patch or other tweaks will do the work. 
-### Post-reset Windows Vista & Early 7 (later 7 is untested)
+### Post-reset Windows Vista & Early 7
 - They suck. Avoid using these versions at all. After build expires, buggy WPA breaks the timebomb which makes this patch not get applied anyway, and shows the "Activate Windows" dialog which logs you off if you say no; considering that those builds can skip the windeploy and boot to OOBE/desktop at all in the first place (https://github.com/NevermindExpress/TimeDefuser/issues/3). See https://github.com/NevermindExpress/TimeDefuser/issues/2 and https://github.com/NevermindExpress/TimeDefuser/issues/2#issuecomment-2970226626 for more info.
 - These builds are *wontfix* because there is nothing to fix/can be fixed in the first place. Blame Microsoft.
 - Alternative patch methods should be used for those. See https://github.com/NevermindExpress/TimeDefuser/issues/2#issuecomment-2904890597
+### Later Windows 7 (at least 67xx and later)
+- Since TimeDefuser 1.7.1 they are now working working without hitting into page fault (see #3), though they are still subject to PatchGuard detections, an active investigation is going for them at #8. 
 ### Windows 8
 - Some builds such as 7880 has a partially broken timebomb that effectively gets disabled if you install at current date instead of rolling it back to pre-expiration before install. See https://github.com/NevermindExpress/TimeDefuser/issues/5
 - Certain builds such as aforementioned are also subject to crashes by PatchGuard, while others such as the ones with the screenshots below are not. See https://github.com/NevermindExpress/TimeDefuser/issues/5#issuecomment-3369399950

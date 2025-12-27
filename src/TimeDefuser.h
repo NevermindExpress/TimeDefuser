@@ -5,7 +5,7 @@
 #include <ntstrsafe.h>
 
 /// Definitions
-#define td_version "1.7"
+#define td_version "1.7.1"
 #ifdef TD_LEGACY
 	#define td_variant " (Legacy)"
 #else
