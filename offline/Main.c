@@ -83,6 +83,7 @@ int main(int argc, char* argv[]) {
 		tdError(L"[-] Error creating a file mapping to copied file: %ls\n", GetLastError());
 		failed = 1; goto _Return;
 	}
+	char* data0 = data;
 
 	// Sanity checks...
 	IMAGE_NT_HEADERS* nt = NULL;
@@ -126,7 +127,6 @@ int main(int argc, char* argv[]) {
 		failed = 1; goto _Return;
 	} // Search onwards it until end of the file.
 	printf("[+] Searching at 0x%x within 0x%x bytes...\n", PAGELK->PointerToRawData, (int)sz - PAGELK->PointerToRawData);
-	char* data0 = data;
 	data += PAGELK->PointerToRawData;
 	for (size_t i = 0; i < sz - PAGELK->PointerToRawData; i++) {
 		if (*(__int64*)&data[i] == mach->SharedData) {
@@ -134,29 +134,40 @@ int main(int argc, char* argv[]) {
 			printf("[+] ExGetExpirationDate found at %x\n", &data[i]-data0);
 			for (unsigned char k = 0; k < 100; k++) {
 				if ((unsigned char)data[i - k] == mach->callOp) { // CALL instruction found.
-					printf("[+] CALL instruction found at RVA: 0x%x ", &data[i - k] - data0);
-					char* pExGetExpirationDate = 0;
-					pExGetExpirationDate += *(unsigned int*)&data[i - k + 1]; // Next 4 bytes are relative address to our current location.
+					printf("[+] CALL instruction found at file: 0x%x ", &data[i - k] - data0);
+					char* pCall = &data[i - k] - data0;
+					unsigned int Offset = *(unsigned int*)&data[i - k + 1]; // Next 4 bytes are relative address to our current location.
 					//pExGetExpirationDate = pExGetExpirationDate - data;
-					// Convert RVA to file offset
-					IMAGE_SECTION_HEADER* currentSect = tdFindSectionByAddress(pExGetExpirationDate, nt + 1);
+					// Convert file offset to RVA
+					IMAGE_SECTION_HEADER* currentSect = tdFindSectionByAddress(pCall, nt + 1);
 					if (!currentSect) {
 						puts("\n[*] Invalid address, skipping this one...");
 						continue;
 					}
-					pExGetExpirationDate = currentSect->PointerToRawData + (pExGetExpirationDate - currentSect->VirtualAddress);
-					printf("file: 0x%llx\n", pExGetExpirationDate);
+					int pCallRVA = (unsigned int)(pCall) - currentSect->PointerToRawData + currentSect->VirtualAddress;
+					printf("RVA: 0x%x\n", pCallRVA);
+					// Add RIP relative to calculated RVA
+					pCallRVA += Offset;
+					printf("[+]: Potential ExGetExpirationDate at RVA: 0x%x ", pCallRVA);
+					// Convert this new RVA back to file offset.
+					currentSect = tdFindSectionByRVA(pCallRVA, nt + 1);
+					if (!currentSect) {
+						puts("\n[*] Invalid address, skipping this one...");
+						continue;
+					}
+					int exGetFile = currentSect->PointerToRawData + (pCallRVA - currentSect->VirtualAddress);
+					printf("file: 0x%x\n", exGetFile);
 					// Check if it is valid.
-					if (pExGetExpirationDate > sz) {
+					if (exGetFile > sz) {
 						puts("[*] Invalid address, skipping this one...");
 						continue;
 					}
-					printf("[+] ExGetExpirationDate found at %x\n", pExGetExpirationDate);
-					pExGetExpirationDate += (unsigned __int64)data0;
+					printf("[+] ExGetExpirationDate found at 0x%x\n", exGetFile);
+					char* pExGetExpirationDate = &data0[exGetFile];
 					// Patch the function.
 					*(int*)pExGetExpirationDate = mach->ShellCode;
 					// All is done.
-					goto _Return;
+					goto _PatchDone;
 				}
 			}
 			puts("[-] Failed to find ExGetExpirationDate.");
@@ -166,6 +177,12 @@ int main(int argc, char* argv[]) {
 	
 	puts("[-] Failed to find ExpTimeRefreshWork.");
 	failed = 1;
+_PatchDone:
+	// Code jumps here when patch succeeds.
+	// Onwards, we will do checksum recalculation.
+	nt->OptionalHeader.CheckSum = 0;
+	nt->OptionalHeader.CheckSum = tdCalculateChecksum(data0, sz);
+
 	// Cleanup and exit.
 _Return:
 	if (data) {

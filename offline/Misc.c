@@ -35,3 +35,29 @@ IMAGE_SECTION_HEADER* tdFindSectionByRVA(const char* addr, IMAGE_SECTION_HEADER*
 	}
 	return NULL;
 }
+
+DWORD tdCalculateChecksum(BYTE* data, DWORD fileSize) {
+	DWORD sum = 0;
+	DWORD i = 0;
+
+	while (i + 1 < fileSize) {
+		sum += *(WORD*)(data + i);
+		sum = (sum & 0xFFFF) + (sum >> 16);
+		i += 2;
+	}
+
+	// Handle odd file size
+	if (i < fileSize) {
+		sum += data[i];
+		sum = (sum & 0xFFFF) + (sum >> 16);
+	}
+
+	// Final fold
+	sum = (sum & 0xFFFF) + (sum >> 16);
+	sum = (sum & 0xFFFF) + (sum >> 16);
+
+	// Add file length
+	sum += fileSize;
+
+	return sum;
+}

@@ -42,3 +42,4 @@ extern bool tdSanityCheck(char* data, IMAGE_NT_HEADERS** nt);
 extern IMAGE_SECTION_HEADER* tdFindSection(const char* name, IMAGE_SECTION_HEADER* data);
 extern IMAGE_SECTION_HEADER* tdFindSectionByAddress(const char* addr, IMAGE_SECTION_HEADER* data);
 extern IMAGE_SECTION_HEADER* tdFindSectionByRVA(const char* addr, IMAGE_SECTION_HEADER* data);
+extern DWORD tdCalculateChecksum(BYTE* data, DWORD fileSize);
