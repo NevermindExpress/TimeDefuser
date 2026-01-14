@@ -37,6 +37,10 @@ enum tdMachineTypes {
 
 extern TDMachine tdMachineData[];
 
+#ifndef IMAGE_FILE_MACHINE_ARM64
+	#define IMAGE_FILE_MACHINE_ARM64 0xAA64
+#endif
+
 // TD Functions
 extern bool tdSanityCheck(char* data, IMAGE_NT_HEADERS** nt);
 extern IMAGE_SECTION_HEADER* tdFindSection(const char* name, IMAGE_SECTION_HEADER* data);

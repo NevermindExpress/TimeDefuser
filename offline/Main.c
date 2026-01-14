@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
 				if ((unsigned char)data[i - k] == mach->callOp) { // CALL instruction found.
 					printf("[+] CALL instruction found at file: 0x%x ", &data[i - k] - data0);
 					char* pCall = &data[i - k] - data0;
-					unsigned int Offset = *(unsigned int*)&data[i - k + 1]; // Next 4 bytes are relative address to our current location.
+					unsigned int Offset = *(unsigned int*)&data[i - k + 1] + 5; // Next 4 bytes are relative address to our current location.
 					//pExGetExpirationDate = pExGetExpirationDate - data;
 					// Convert file offset to RVA
 					IMAGE_SECTION_HEADER* currentSect = tdFindSectionByAddress(pCall, nt + 1);
@@ -201,7 +201,7 @@ _Return:
 	}
 	else {
 		wprintf(L"Patch successfully completed. Patched kernel image is at \"%ws\".\n"
-			"For using the patched kernel, disable integrity checks and replace the C:\\Windows\\System32\\ntoskrnl.exe.\n"
+			L"For using the patched kernel, disable integrity checks and replace the C:\\Windows\\System32\\ntoskrnl.exe.\n"
 			, dupFilePath);
 		free(dupFilePath); return 0;
 	}
