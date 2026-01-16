@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path=".vs/Offline-VS2026.vcxproj" Id="3a14a191-e544-4fa0-b232-a4601abaa562" />
+  <Project Path=".vs/TimeDefuser-VS2026.vcxproj" Id="6549fef3-d089-4e1e-a41e-4a8874d9d1ef" />
+</Solution>

@@ -1,5 +1,4 @@
 x64
-.vs
 *.user
 *.aps
 obj*
@@ -10,3 +9,6 @@ RC*
 Out
 Intermediate
 *.exe
+.vs/*.sln/*
+.vs/*.slnx/*
+.vs/TimeDefuser/*

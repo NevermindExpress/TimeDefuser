@@ -27,8 +27,9 @@ BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	return TRUE;
 }
 #endif
+#define PDRIVER_OBEJCT void* // Unused by TimeDefuser
 
-NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) {
+NTSTATUS DriverEntry(void* DriverObject, PUNICODE_STRING RegistryPath) {
 	LARGE_INTEGER* li = KUSERSystemExpirationDate; // Address of SystemExpirationDate field at KUSER_SHARED_DATA
 	unsigned long long TimebombStamp = 0;	// Expiration date stamp
 	RTL_PROCESS_MODULES ModuleInfo = { 0 };	// Structure used for getting kernel base address
@@ -156,12 +157,12 @@ patchBeginning:
 			// Get the function RVA and append it to kernel base address.
 			int* asd = (int*)&KernelBase[i + 1];
 			PotentialTimestamp += asd[1];
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: PAGEDATA Section found at 0x%p with size %d\n", PotentialTimestamp, *(int*)&KernelBase[i + 1]));
+			TDPrint("[+] TimeDefuser: PAGEDATA Section found at 0x%p with size %d\n", PotentialTimestamp, *(int*)&KernelBase[i + 1]);
 			break;
 		}
 	}
 	if (PotentialTimestamp == (unsigned char*)KernelBase) {
-		KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser: PAGEDATA Section not found!\n"));
+		TDPrint("[X] TimeDefuser: PAGEDATA Section not found!\n");
 		goto patchFail;
 	}
 
@@ -169,12 +170,12 @@ patchBeginning:
 	CHAR occurance = FALSE;
 	void* pExpNtExpirationDate = NULL;
 
-	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: searching for stamp at 0x%p in %d bytes\n", PotentialTimestamp, KernelSize2));
+	TDPrint("[+] TimeDefuser: searching for stamp at 0x%p in %d bytes\n", PotentialTimestamp, KernelSize2);
 
 	KernelSize2;
 	for (ULONG i = 0; i < KernelSize2; i++) {
 		if (*(unsigned long long*) & PotentialTimestamp[i] == TimebombStamp) {
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: Timebomb stamp found at 0x%p\n", &PotentialTimestamp[i]));
+			TDPrint("[+] TimeDefuser: Timebomb stamp found at 0x%p\n", &PotentialTimestamp[i]);
 			*(unsigned long long*)(&PotentialTimestamp[i]) = 0;
 			pExpNtExpirationDate = &PotentialTimestamp[i];
 
@@ -194,13 +195,14 @@ patchBeginning:
 	// Print the address according to occurrance.
 	switch (occurance) {
 		case 0:
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser: can't find ExpNtExpirationDate!\n"));
-			goto patchFail; break;
+			TDPrint("[X] TimeDefuser: can't find ExpNtExpirationDate!\n");
+			goto patchFail; 
+			break;
 		case 1:
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (first occurrance)\n", pExpNtExpirationDate));
+			TDPrint("[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (first occurrance)\n", pExpNtExpirationDate);
 			break;
 		case 2:
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (second occurrance)\n", pExpNtExpirationDate));
+			TDPrint("[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (second occurrance)\n", pExpNtExpirationDate);
 			break;
 	}
 

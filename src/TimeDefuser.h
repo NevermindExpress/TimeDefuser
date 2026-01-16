@@ -1,11 +1,10 @@
 ﻿/// General definitions for TimeDefuser
 
 /// Includes
-#include <ntddk.h>
-#include <ntstrsafe.h>
+#include "tdwdm/wdm.h"
 
 /// Definitions
-#define td_version "1.8"
+#define td_version "1.8.1"
 #ifdef TD_LEGACY
 	#define td_variant " (Legacy)"
 #else
