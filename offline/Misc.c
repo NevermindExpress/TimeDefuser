@@ -18,7 +18,7 @@ IMAGE_SECTION_HEADER* tdFindSection(const char* name, IMAGE_SECTION_HEADER* data
 	return NULL;
 }
 
-IMAGE_SECTION_HEADER* tdFindSectionByAddress(const char* addr, IMAGE_SECTION_HEADER* data) {
+IMAGE_SECTION_HEADER* tdFindSectionByAddress(unsigned int addr, IMAGE_SECTION_HEADER* data) {
 	for (size_t i = 0; i < 36; i++) {
 		if (addr > data[i].PointerToRawData && addr < data[i].PointerToRawData + data[i].SizeOfRawData) {
 			return &data[i];
@@ -27,7 +27,7 @@ IMAGE_SECTION_HEADER* tdFindSectionByAddress(const char* addr, IMAGE_SECTION_HEA
 	return NULL;
 }
 
-IMAGE_SECTION_HEADER* tdFindSectionByRVA(const char* addr, IMAGE_SECTION_HEADER* data) {
+IMAGE_SECTION_HEADER* tdFindSectionByRVA(unsigned int addr, IMAGE_SECTION_HEADER* data) {
 	for (size_t i = 0; i < 36; i++) {
 		if (addr > data[i].VirtualAddress && addr < data[i].VirtualAddress + data[i].Misc.VirtualSize) {
 			return &data[i];

@@ -1,7 +1,7 @@
 ﻿#define TD_OFFLINE
 #include "TimeDefuserOffline.h"
 
-const wchar_t* tdGetDupFilePath() {
+wchar_t* tdGetDupFilePath() {
 	// Here are all secure functions so rustfags will shut the fuck up.
 	wchar_t* ret = malloc(2048);
 	if (!ret) return NULL;
@@ -45,25 +45,32 @@ int main(int argc, char* argv[]) {
 	HANDLE f = INVALID_HANDLE_VALUE; // File handle
 	HANDLE m = 0; // Memory mapping handle
 	char* data = NULL; // Memory mapping
-	size_t sz = 0; // File size
-
-	if (argc < 2) {// No arguments.
-		printf("Usage: %s (X:\\Path\\to\\ntoskrnl.exe)\n", argv[0]); return -1;
-	}
+	DWORD sz = 0; // File size
+	wchar_t* dupFilePath = tdGetDupFilePath(); // Name for duplicated file.
+	wchar_t* openFilePath; // Path of kernel image to open.
 
 	// Enable proper Unicode output
 	SetConsoleOutputCP(CP_UTF8);
 	setlocale(LC_ALL, "");
 
+	puts("[+] TimeDefuser Offline version " td_version " loaded "
+		"| Compiled on " __DATE__ " " __TIME__ " "
+		"| https://github.com/NevermindExpress/TimeDefuser");
+
+	if (argc < 2) {// No arguments.
+		puts("[*] No file path given, assuming default C:\\Windows\\System32\\ntoskrnl.exe.");
+		openFilePath = L"C:\\Windows\\System32\\ntoskrnl.exe";
+	} else 
+		openFilePath = CommandLineToArgvW(GetCommandLineW(), &argc)[1];
+
 	// Duplicate the given file.
-	const wchar_t* dupFilePath = tdGetDupFilePath();
-	if (!CopyFileW(CommandLineToArgvW(GetCommandLineW(), &argc)[1], dupFilePath, 1)) {
+	if (!CopyFileW(openFilePath, dupFilePath, 1)) {
 		tdError(L"[-] Error copying the file: %ls\n", GetLastError());
 		failed = 1; goto _Return;
 	}
 
 	// Open the duplicate.
-	f = CreateFileW(dupFilePath, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, NULL, NULL);
+	f = CreateFileW(dupFilePath, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0);
 	if (f == INVALID_HANDLE_VALUE) {
 		tdError(L"[-] Error duplicating the input file: %ls\n", GetLastError());
 		failed = 1; goto _Return;
@@ -106,7 +113,7 @@ int main(int argc, char* argv[]) {
 		}
 		break;
 	}
-	printf("(%s, %d bytes)\n", mach->FriendlyName, sz);
+	printf("(%s, %lu bytes)\n", mach->FriendlyName, sz);
 
 	if (nt->FileHeader.Machine != IMAGE_FILE_MACHINE_I386 && nt->FileHeader.Machine != IMAGE_FILE_MACHINE_AMD64) {
 		puts("[-] This machine type is not yet supported, please open an issue at https://github.com/NevermindExpress/TimeDefuser/issues.");
@@ -120,8 +127,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// All check and stuff are done, now actual patching work begins. First we'll need to find where to patch.
-	//PAGESections ps[5] = { 0 };
-	IMAGE_SECTION_HEADER* PAGELK = tdFindSection("PAGELK\0", nt + 1);
+	IMAGE_SECTION_HEADER* PAGELK = tdFindSection("PAGELK\0", (IMAGE_SECTION_HEADER*)(nt + 1));
 	if (!PAGELK) {
 		puts("[-] PAGELK section not found.");
 		failed = 1; goto _Return;
@@ -129,34 +135,38 @@ int main(int argc, char* argv[]) {
 	printf("[+] Searching at 0x%x within 0x%x bytes...\n", PAGELK->PointerToRawData, (int)sz - PAGELK->PointerToRawData);
 	data += PAGELK->PointerToRawData;
 	for (size_t i = 0; i < sz - PAGELK->PointerToRawData; i++) {
-		if (*(__int64*)&data[i] == mach->SharedData) {
+		if ((mach->w64 && *(__int64*)&data[i] == mach->SharedData)
+			|| (!mach->w64 && *(int*)&data[i] == mach->SharedData)) {
 			// We found the time refresh work, search backwards for a CALL instruction
-			printf("[+] ExGetExpirationDate found at %x\n", &data[i]-data0);
+			printf("[+] ExGetExpirationDate found at 0x%llx\n", &data[i]-data0);
 			for (unsigned char k = 0; k < 100; k++) {
 				if ((unsigned char)data[i - k] == mach->callOp) { // CALL instruction found.
-					printf("[+] CALL instruction found at file: 0x%x ", &data[i - k] - data0);
-					char* pCall = &data[i - k] - data0;
+					printf("[+] CALL instruction found at file: 0x%llx ", &data[i - k] - data0);
+					int pCall = &data[i - k] - data0;
 					unsigned int Offset = *(unsigned int*)&data[i - k + 1] + 5; // Next 4 bytes are relative address to our current location.
-					//pExGetExpirationDate = pExGetExpirationDate - data;
+
 					// Convert file offset to RVA
-					IMAGE_SECTION_HEADER* currentSect = tdFindSectionByAddress(pCall, nt + 1);
+					IMAGE_SECTION_HEADER* currentSect = tdFindSectionByAddress((unsigned int)pCall, (IMAGE_SECTION_HEADER*)(nt + 1));
 					if (!currentSect) {
 						puts("\n[*] Invalid address, skipping this one...");
 						continue;
 					}
-					int pCallRVA = (unsigned int)(pCall) - currentSect->PointerToRawData + currentSect->VirtualAddress;
+					int pCallRVA = pCall - currentSect->PointerToRawData + currentSect->VirtualAddress;
 					printf("RVA: 0x%x\n", pCallRVA);
+
 					// Add RIP relative to calculated RVA
 					pCallRVA += Offset;
-					printf("[+]: Potential ExGetExpirationDate at RVA: 0x%x ", pCallRVA);
+					printf("[+] Potential ExGetExpirationDate at RVA: 0x%x ", pCallRVA);
+
 					// Convert this new RVA back to file offset.
-					currentSect = tdFindSectionByRVA(pCallRVA, nt + 1);
+					currentSect = tdFindSectionByRVA(pCallRVA, (IMAGE_SECTION_HEADER*)(nt + 1));
 					if (!currentSect) {
 						puts("\n[*] Invalid address, skipping this one...");
 						continue;
 					}
 					int exGetFile = currentSect->PointerToRawData + (pCallRVA - currentSect->VirtualAddress);
 					printf("file: 0x%x\n", exGetFile);
+
 					// Check if it is valid.
 					if (exGetFile > sz) {
 						puts("[*] Invalid address, skipping this one...");
@@ -164,8 +174,10 @@ int main(int argc, char* argv[]) {
 					}
 					printf("[+] ExGetExpirationDate found at 0x%x\n", exGetFile);
 					char* pExGetExpirationDate = &data0[exGetFile];
+
 					// Patch the function.
 					*(int*)pExGetExpirationDate = mach->ShellCode;
+
 					// All is done.
 					goto _PatchDone;
 				}
@@ -200,7 +212,7 @@ _Return:
 		free(dupFilePath); return -1;
 	}
 	else {
-		wprintf(L"Patch successfully completed. Patched kernel image is at \"%ws\".\n"
+		wprintf(L"[+] Patch successfully completed. Patched kernel image is at \"%ws\". "
 			L"For using the patched kernel, disable integrity checks and replace the C:\\Windows\\System32\\ntoskrnl.exe.\n"
 			, dupFilePath);
 		free(dupFilePath); return 0;

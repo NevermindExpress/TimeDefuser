@@ -1,5 +1,6 @@
 ﻿#define TD_OFFLINE
-#include "TimeDefuserOffline.h",
+#include "TimeDefuserOffline.h"
+
 const wchar_t CompanyKey[]		= L"CompanyName";
 const wchar_t CompanyValue[]	= L"Microsoft Corporation";
 const wchar_t DescKey[]			= L"FileDescription";
@@ -19,6 +20,7 @@ bool tdSanityCheck(char* data, IMAGE_NT_HEADERS** nt) {
 		printf("[-] Suspicious e_lfanew value.\n");
 		return 0;
 	}
+
 	// PE file?
 	*nt = (IMAGE_NT_HEADERS*)(data + dos->e_lfanew);
 
@@ -26,11 +28,13 @@ bool tdSanityCheck(char* data, IMAGE_NT_HEADERS** nt) {
 		printf("[-] PE signature check mismatch. (expected PE\\0\\0).\n");
 		return 0;
 	}
+
 	// Executable?
 	if (!((*nt)->FileHeader.Characteristics & IMAGE_FILE_EXECUTABLE_IMAGE)) {
 		printf("[-] File is not marked as an executable image.\n");
 		return 0;
 	}
+
 	// NATIVE subsystem?
 	if ((*nt)->OptionalHeader.Subsystem != IMAGE_SUBSYSTEM_NATIVE) {
 		printf("[-] Not a kernel image (subsystem).\n");
@@ -38,15 +42,15 @@ bool tdSanityCheck(char* data, IMAGE_NT_HEADERS** nt) {
 	}
 	IMAGE_DATA_DIRECTORY* rdir =
 		&(*nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
+
 	// Has resources?
 	if (!rdir->VirtualAddress || !rdir->Size) {
 		printf("[-] Not a kernel image (lacks resources).\n");
 		return 0;
 	}
-	// Has resources. Now we gotta find where they are in image.
-	// 
+	// Has resources. Now we gotta find where they are in image. 
 	// Find the .rsrc section
-	IMAGE_SECTION_HEADER* sect = tdFindSection(".rsrc\0\0", *nt + 1);
+	IMAGE_SECTION_HEADER* sect = tdFindSection(".rsrc\0\0", (IMAGE_SECTION_HEADER*)(*nt + 1));
 	if (!sect) {
 		printf("[-] Not a kernel image (no resources).\n");
 		return 0;
@@ -83,6 +87,7 @@ bool tdSanityCheck(char* data, IMAGE_NT_HEADERS** nt) {
 	if (memcmp(data, VerKey, sizeof(VerKey))) {
 		printf("[-] Not a kernel image (no version).\n"); return 0;
 	} data += sizeof(VerKey) + 2;
+
 	// All OK
 	wprintf(L"[+] Valid kernel image %ls ", (wchar_t*)data);
 	return 1;
