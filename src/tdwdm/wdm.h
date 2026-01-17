@@ -17,9 +17,11 @@
 #include <excpt.h>
 #include <dpfilter.h>
 
-// Definitions
+//#undef NTSYSAPI
+#define NTKERNELAPI __declspec(dllimport)
+//#define NTSYSAPI
 
-#define NTKERNELAPI DECLSPEC_IMPORT
+// Definitions
 #define TIMER_TOLERABLE_DELAY_BITS      6
 #define TIMER_EXPIRED_INDEX_BITS        6
 #define TIMER_PROCESSOR_INDEX_BITS      5
@@ -704,7 +706,7 @@ typedef struct _KEY_VALUE_PARTIAL_INFORMATION {
 // Functions
 
 /// Debug print
-NTSYSAPI ULONG DbgPrintEx(
+NTSYSAPI ULONG NTAPI DbgPrintEx(
 	_In_ ULONG ComponentId,
 	_In_ ULONG Level,
 	_In_ PCSTR Format,
@@ -712,7 +714,7 @@ NTSYSAPI ULONG DbgPrintEx(
 );
 
 /// Memory management
-NTKERNELAPI PMDL IoAllocateMdl(
+NTKERNELAPI PMDL NTAPI IoAllocateMdl(
 	_In_opt_ __drv_aliasesMem PVOID VirtualAddress,
 	_In_ ULONG Length,
 	_In_ BOOLEAN SecondaryBuffer,
@@ -720,19 +722,19 @@ NTKERNELAPI PMDL IoAllocateMdl(
 	_Inout_opt_ PIRP Irp
 );
 
-VOID MmProbeAndLockPages(
+VOID NTAPI MmProbeAndLockPages(
 	_Inout_   PMDL            MemoryDescriptorList,
 	_In_      KPROCESSOR_MODE AccessMode,
 	_In_      LOCK_OPERATION  Operation
 );
 
-NTKERNELAPI PVOID MmMapLockedPages(
+NTKERNELAPI PVOID NTAPI MmMapLockedPages(
     _Inout_ PMDL MemoryDescriptorList,
     _In_ __drv_strictType(KPROCESSOR_MODE / enum _MODE, __drv_typeConst)
     KPROCESSOR_MODE AccessMode
 );
 
-NTKERNELAPI PVOID MmMapLockedPagesSpecifyCache(
+NTKERNELAPI PVOID NTAPI MmMapLockedPagesSpecifyCache(
     _Inout_ PMDL MemoryDescriptorList,
     _In_ __drv_strictType(KPROCESSOR_MODE / enum _MODE, __drv_typeConst)
     KPROCESSOR_MODE AccessMode,
@@ -742,25 +744,25 @@ NTKERNELAPI PVOID MmMapLockedPagesSpecifyCache(
     _In_     ULONG Priority  // MM_PAGE_PRIORITY logically OR'd with MdlMapping*
 );
 
-NTKERNELAPI NTSTATUS MmProtectMdlSystemAddress(
+NTKERNELAPI NTSTATUS NTAPI MmProtectMdlSystemAddress(
     _In_ PMDL MemoryDescriptorList,
     _In_ ULONG NewProtect
 );
 
-NTKERNELAPI VOID MmUnmapLockedPages(
+NTKERNELAPI VOID NTAPI MmUnmapLockedPages(
     _In_ PVOID BaseAddress,
     _Inout_ PMDL MemoryDescriptorList
 );
 
-NTKERNELAPI VOID MmUnlockPages(
+NTKERNELAPI VOID NTAPI MmUnlockPages(
     _Inout_ PMDL MemoryDescriptorList
 );
 
-NTKERNELAPI VOID IoFreeMdl(
+NTKERNELAPI VOID NTAPI IoFreeMdl(
     PMDL Mdl
 );
 
-BOOLEAN MmIsAddressValid(
+BOOLEAN NTAPI MmIsAddressValid(
     _In_ PVOID VirtualAddress
 );
 
@@ -770,7 +772,7 @@ NTKERNELAPI PVOID NTAPI ExAllocatePoolWithTag(
     _In_ ULONG Tag
 );
 
-NTKERNELAPI VOID ExFreePoolWithTag(
+NTKERNELAPI VOID __stdcall ExFreePoolWithTag(
     _Pre_notnull_ __drv_freesMem(Mem) PVOID P,
     _In_ ULONG Tag
 );
@@ -815,34 +817,20 @@ NTSYSAPI VOID NTAPI RtlInitUnicodeString(
     _In_opt_z_ __drv_aliasesMem PCWSTR SourceString
 );
 
-FORCEINLINE
-PVOID
-__cdecl
-memcpy_inline(
-    _Out_writes_bytes_all_(size) void* dst,
-    _In_reads_bytes_(size) const void* src,
-    _In_ size_t size
-)
-{
-    //
-    // Make sure the source and destination do not overlap such that the
-    // move destroys the destination.
-    //
-    if (((char*)dst > (char*)src) &&
-        ((char*)dst < ((char*)src + size))) {
-        __debugbreak();
-    }
-    return memcpy(dst, src, size);
-}
-#define memcpy memcpy_inline
-#define RtlCopyMemory(Destination,Source,Length) memcpy((Destination),(Source),(Length))
-
-NTSTATUS RtlStringCchPrintfW(
-    _Out_ PWSTR  pszDest,
-    _In_  size_t           cchDest,
-    _In_  PCWSTR pszFormat,
+int __cdecl swprintf(
+    wchar_t* buffer,
+    size_t count,
+    const wchar_t* format,
     ...
 );
+
+void* __cdecl memcpy(
+    _Out_writes_bytes_all_(_Size) void* _Dst,
+    _In_reads_bytes_(_Size)       void const* _Src,
+    _In_                          size_t      _Size
+);
+#define RtlCopyMemory(Destination,Source,Length) memcpy((Destination),(Source),(Length))
+
 
 /// ???
 NTKERNELAPI BOOLEAN PsGetVersion(

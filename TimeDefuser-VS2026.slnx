@@ -3,6 +3,11 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Project Path=".vs/tdwdm-VS2026.vcxproj" Id="086de639-b233-4e1d-951f-76c2f1d60472">
+    <BuildType Project="Debug" />
+  </Project>
   <Project Path=".vs/Offline-VS2026.vcxproj" Id="3a14a191-e544-4fa0-b232-a4601abaa562" />
-  <Project Path=".vs/TimeDefuser-VS2026.vcxproj" Id="6549fef3-d089-4e1e-a41e-4a8874d9d1ef" />
+  <Project Path=".vs/TimeDefuser-VS2026.vcxproj" Id="6549fef3-d089-4e1e-a41e-4a8874d9d1ef">
+    <BuildDependency Project=".vs/tdwdm-VS2026.vcxproj" />
+  </Project>
 </Solution>

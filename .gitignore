@@ -9,6 +9,11 @@ RC*
 Out
 Intermediate
 *.exe
+*.ilk
+*.pdb
+*.exp
+*.lib
+*.obj
 .vs/*.sln/*
 .vs/*.slnx/*
 .vs/TimeDefuser/*

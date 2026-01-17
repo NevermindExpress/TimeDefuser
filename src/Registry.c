@@ -92,7 +92,8 @@ NTSTATUS SaveKernelVersion(_In_ HANDLE hKey) {
 	PsGetVersion(&major, &minor, &build, NULL);
 
 	WCHAR kernelVersionString[64] = L"";
-	RtlStringCchPrintfW(kernelVersionString, 64, L"%u.%u.%u", major, minor, build);
+	swprintf(kernelVersionString, 64, L"%u.%u.%u", major, minor, build);
+	
 
 	SIZE_T len = (wcslen(kernelVersionString) + 1) * sizeof(WCHAR);
 
@@ -113,7 +114,7 @@ BOOLEAN CompareKernelVersion(_In_ HANDLE hKey) {
 	ULONG major, minor, build;
 	PsGetVersion(&major, &minor, &build, NULL);
 	WCHAR kernelVersionCurrent[64] = L"";
-	RtlStringCchPrintfW(kernelVersionCurrent, 64, L"%u.%u.%u", major, minor, build);
+	swprintf(kernelVersionCurrent, 64, L"%u.%u.%u", major, minor, build);
 
 	// Then we will get the value from registry.
 	WCHAR kernelVersionReg[64] = L"";

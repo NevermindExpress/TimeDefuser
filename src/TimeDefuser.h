@@ -58,7 +58,7 @@ extern __kernel_entry NTSTATUS NTAPI ZwQuerySystemInformation(
 	PVOID SystemInformation,
 	ULONG SystemInformationLength,
 	PULONG ReturnLength OPTIONAL
-);
+);	
 
 /// TimeDefuser Registry Functions
 HANDLE OpenRegistryKey(PUNICODE_STRING KeyPath);

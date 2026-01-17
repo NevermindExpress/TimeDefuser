@@ -19,9 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\TimeDefuser.inf" />
-    <None Include="..\src\tdwdm\ntoskrnl.def">
-      <Filter>tdwdm</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\TimeDefuser.rc">
@@ -42,9 +39,6 @@
     </ClInclude>
     <ClInclude Include="..\src\TimeDefuser.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tdwdm\wdm.h">
-      <Filter>tdwdm</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
