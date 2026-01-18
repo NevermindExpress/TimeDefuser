@@ -90,7 +90,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>cd $(SolutionDir)src\tdwdm &amp;&amp; cl /LD /nologo ntoskrnl.c ntoskrnl.def /link /DLL /OUT:ntoskrnl.exe &amp;&amp; copy /y ntoskrnl.lib .\lib\x86\ntoskrnl.lib</Command>
+      <Command>cd $(SolutionDir)src\tdwdm &amp;&amp; cl /LD /nologo ntoskrnl.c ntoskrnl.def /link /DLL /OUT:ntoskrnl.exe &amp;&amp; copy /y ntoskrnl.lib .\lib\x64\ntoskrnl.lib</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -167,6 +167,11 @@ NTKERNELAPI NTSTATUS NTAPI ZwQuerySystemInformation(
     return 0;
 }
 
+NTKERNELAPI int __cdecl swprintf(wchar_t* buffer, size_t count, const wchar_t* format, ...)
+{
+    return 0;
+}
+
 //NTKERNELAPI void* __cdecl memcpy(
 //    void* a,
 //    const void* b,
@@ -174,7 +179,7 @@ NTKERNELAPI NTSTATUS NTAPI ZwQuerySystemInformation(
 //) {
 //    return a;
 //}
-//
+
 //NTKERNELAPI void* __cdecl memset(
 //    void* a,
 //    int b,
@@ -182,18 +187,12 @@ NTKERNELAPI NTSTATUS NTAPI ZwQuerySystemInformation(
 //) {
 //    return a;
 //}
-
-NTKERNELAPI int __cdecl swprintf(wchar_t* buffer, size_t count, const wchar_t* format, ...)
-{
-    return 0;
-}
 //NTKERNELAPI int __cdecl wcscmp(
 //    const WCHAR* a,
 //    const WCHAR* b
 //) {
 //    return 0;
 //}
-
 //NTKERNELAPI size_t __cdecl wcslen(
 //    const WCHAR* a
 //) {

@@ -3,7 +3,7 @@
 #ifndef TD_LEGACY
 BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	PMDL mdl = NULL;
-	void* map = NULL;
+	unsigned char* map = NULL;
 	// Create a MDL paging to get over write protection.
 	mdl = IoAllocateMdl(pExGetExpirationDate, 8, FALSE, FALSE, NULL);
 	if (!mdl) {
@@ -19,7 +19,16 @@ BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	}
 	MmProtectMdlSystemAddress(mdl, PAGE_READWRITE);
 	// Write to newly created MDL mapping.
-	*(int*)map = 0xC3C03148; // xor eax,eax \ ret | This is apparently same for both x86 and x64
+#ifdef _M_IX86
+	*(int*)map = 0x9090C031; // xor eax,eax \ times 2 nop
+	map[4] = 0x90; // nop
+	if (map[-5] = 0x68) { // Possibly unnecessary sanity check for a preceding push instruction
+		*(int*)(map - 4) = 0x90909090; // times 4 nop
+		map[-5] = 0x90; // nop
+	}
+#elif defined(_M_AMD64)
+	*(int*)map = 0xC3C03148; // xor rax,rax \ ret
+#endif // _M_IX86
 	// Unmap the MDL
 	MmUnmapLockedPages(map, mdl);
 	MmUnlockPages(mdl);
@@ -261,7 +270,12 @@ NTSTATUS DriverEntry(void* DriverObject, PUNICODE_STRING RegistryPath) {
 						}
 
 						TDPrint("[+] TimeDefuser: ExGetExpirationDate found at 0x%p\n", pExGetExpirationDate);
+#ifdef _M_IX86
+						// Caller is patched on x86
+						if (!PatchExGetExpirationDate(&PotentialTimeRef[i - j]))
+#else
 						if (!PatchExGetExpirationDate(pExGetExpirationDate))
+#endif
 							goto patchFail;
 						else {
 							goto patchOK;
