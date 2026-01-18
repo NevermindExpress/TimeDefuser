@@ -55,51 +55,44 @@ In all cases the usage of kernel debugger is required to tell which one of those
 
 Driver logs will look like this when it works:
 ```
-[*] TimeDefuser: version 1.5.2 loaded | Compiled on Nov 10 2025 12:13:16 | https://github.com/NevermindExpress/TimeDefuser
-[+] TimeDefuser: SystemExpirationDate is 0x1d0fca547506980
-[+] TimeDefuser: Kernel Base address is 0xFFFFF802D388C000 and size is 8658944
-[+] TimeDefuser: PAGEDATA Section found at 0xFFFFF802D388C488 with size 62464
-[+] TimeDefuser: searching for stamp at 0xFFFFF802D3FF5000 in 62464 bytes
-[+] TimeDefuser: Timebomb stamp found at 0xFFFFF802D3FF5A10
-[+] TimeDefuser: ExpNtExpirationDate address is 0xFFFFF802D3FF5A10 (first occurrance)
-[+] TimeDefuser: PAGELK Section found at 0xFFFFF802D388C348 with size 98932
-[+] TimeDefuser: searching at 0xFFFFF802D3C62000 in 98932 bytes
-[+] TimeDefuser: Potential TimeRef found at 0xFFFFF802D3C63638
-[+] TimeDefuser: ExGetExpirationDate found at 0xFFFFF802D3E02BB4
-[*] TimeDefuser: Patch completed successfully.
-```
-[(same thing as an image)](https://github.com/user-attachments/assets/7e48a48e-a2dc-4872-8825-6aa98df641e3)
+[*] TimeDefuser: version 1.8.1 loaded | Compiled on Jan 18 2026 18:23:45 | https://github.com/NevermindExpress/TimeDefuser
+[+] TimeDefuser: SystemExpirationDate is 0x1c9faa80a3d2980
+[+] TimeDefuser: Kernel Base address is 0xFFFFF80002478000 and size is 5992448
+[*] TimeDefuser: No or mismatching cached addresses are found on registry.
+[+] TimeDefuser: PAGEDATA Section found at 0xFFFFF80002990000 with size 56688
+[+] TimeDefuser: searching for stamp at 0xFFFFF80002990000 in 56688 bytes
+[+] TimeDefuser: Timebomb stamp found at 0xFFFFF80002990250
+[+] TimeDefuser: ExpNtExpirationDate address is 0xFFFFF80002990250 (first occurrance)
+[+] TimeDefuser: PAGELK Section found at 0xFFFFF80002725000 with size 100329
+[+] TimeDefuser: searching at 0xFFFFF80002725000 in 100329 bytes
+[+] TimeDefuser: Potential TimeRef found at 0xFFFFF8000272866A
+[+] TimeDefuser: CALL instruction found at 0xFFFFF80002728664
+[*] TimeDefuser: Invalid address, skipping this one...
+[+] TimeDefuser: CALL instruction found at 0xFFFFF80002728648
+[+] TimeDefuser: ExGetExpirationDate found at 0xFFFFF80002783274
+[+] TimeDefuser: Patch completed successfully.
 
+```
 
 Builds with debug symbols are recommended to try, due to symbols making debugging much easier.
 
 # Build
-Starting with version 1.6, Visual Studio 2013 can build both variants 
-and support every Windows version by having appopriate minimum subsystem version set. 
-With this change, building with old WDKs (7.1 and older) is completely removed
-## Every Windows version with Visual Studio 2013 & Windows 8.1 WDK
-1. Get the VS 2013 & Windows 8.1 WDK
-2. Open the solution `TimeDefuser-vs13.sln`
-3. Select the appopriate build configuration for your needs (architecture and standard/legacy configurations.)
-4. Hit the compile button.
-## Windows 7* and Later with Visual Studio 2022 & Windows 11 WDK
-> [!WARNING]
-> \*: With Windows 11 WDK released in May 2025, Microsoft killed the support for 32-bit architectures, and for anything earlier than Windows 10 RTM.
-> If you have an earlier Windows 11 WDK installed, you can still build for 32-bit or for Windows 7-8.1; else you can only build for Windows 10 Post-RTM insiders.
-> Blame Microsoft for this. See https://github.com/NevermindExpress/TimeDefuser/issues/7
->
-> In case of having the newest WDK, build will fail because of configuration still having the Windows 7 references. To fix it, you should set them to Windows 10 accordingly.
-1. Get the latest WDK 
-2. Open the solution `TimeDefuser.sln`
-3. Hit the compile button.
+Starting with version 1.8.1, TimeDefuser does not depend on any WDK anymore. Instead, it implements 
+it's own frestanding build environment that implements just as much as what TimeDefuser needs.
+
+1. Open the solution file corresponding to your VS version (or open the oldest one available and retarget it)
+2. Go to Build -> Batch build, select all
+3. That's it.
 
 # Screenshots
+These screenshots are all taken by me.
 ![Windows 7973 x64-2025-05-04-16-08-40](https://github.com/user-attachments/assets/f3d3a116-5b67-4b8f-bd4c-d907485a435b)
+![Windows 8331](https://github.com/user-attachments/assets/b49c313c-2768-4f24-bcfb-1cea1a072d88)
 ![Windows 10072 x64-2025-11-10-12-53-19](https://github.com/user-attachments/assets/02bb0087-762a-4a2b-98c9-16b3bf850a0d)
 ![Windows 2526-2025-05-08-17-39-56](https://github.com/user-attachments/assets/24e4f5c9-5cdc-4eae-b91f-dc13bb93a22c)
 
 # Thanks to
 - **Microsoft** for Windows, Windbg and all else.
 - **archive.org and BetaArchive** for preserving beta builds and debug symbols.
-- **Dimitrios Vlachos** for motivational support.
+- **Dimitrios Vlachos** for showing interest while I was developing this.
 - **All the precious testers** that opened up issues.
