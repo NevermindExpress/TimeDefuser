@@ -1,11 +1,10 @@
 ﻿/// General definitions for TimeDefuser
 
 /// Includes
-#include <ntddk.h>
-#include <ntstrsafe.h>
+#include "tdwdm/wdm.h"
 
 /// Definitions
-#define td_version "1.8"
+#define td_version "1.8.1"
 #ifdef TD_LEGACY
 	#define td_variant " (Legacy)"
 #else
@@ -59,7 +58,7 @@ extern __kernel_entry NTSTATUS NTAPI ZwQuerySystemInformation(
 	PVOID SystemInformation,
 	ULONG SystemInformationLength,
 	PULONG ReturnLength OPTIONAL
-);
+);	
 
 /// TimeDefuser Registry Functions
 HANDLE OpenRegistryKey(PUNICODE_STRING KeyPath);

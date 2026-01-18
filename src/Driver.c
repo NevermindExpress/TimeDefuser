@@ -3,7 +3,7 @@
 #ifndef TD_LEGACY
 BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	PMDL mdl = NULL;
-	void* map = NULL;
+	unsigned char* map = NULL;
 	// Create a MDL paging to get over write protection.
 	mdl = IoAllocateMdl(pExGetExpirationDate, 8, FALSE, FALSE, NULL);
 	if (!mdl) {
@@ -19,7 +19,16 @@ BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	}
 	MmProtectMdlSystemAddress(mdl, PAGE_READWRITE);
 	// Write to newly created MDL mapping.
-	*(int*)map = 0xC3C03148; // xor eax,eax \ ret | This is apparently same for both x86 and x64
+#ifdef _M_IX86
+	*(int*)map = 0x9090C031; // xor eax,eax \ times 2 nop
+	map[4] = 0x90; // nop
+	if (map[-5] = 0x68) { // Possibly unnecessary sanity check for a preceding push instruction
+		*(int*)(map - 4) = 0x90909090; // times 4 nop
+		map[-5] = 0x90; // nop
+	}
+#elif defined(_M_AMD64)
+	*(int*)map = 0xC3C03148; // xor rax,rax \ ret
+#endif // _M_IX86
 	// Unmap the MDL
 	MmUnmapLockedPages(map, mdl);
 	MmUnlockPages(mdl);
@@ -27,14 +36,16 @@ BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	return TRUE;
 }
 #endif
+#define PDRIVER_OBEJCT void* // Unused by TimeDefuser
 
-NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) {
+NTSTATUS DriverEntry(void* DriverObject, PUNICODE_STRING RegistryPath) {
 	LARGE_INTEGER* li = KUSERSystemExpirationDate; // Address of SystemExpirationDate field at KUSER_SHARED_DATA
 	unsigned long long TimebombStamp = 0;	// Expiration date stamp
 	RTL_PROCESS_MODULES ModuleInfo = { 0 };	// Structure used for getting kernel base address
 	unsigned long long* KernelBase = NULL;	// Kernel Base address
 	ULONG KernelSize = 0;					// Kernel image size
-	HANDLE hKey = OpenRegistryKey(RegistryPath);
+	//HANDLE hKey = OpenRegistryKey(RegistryPath);
+	HANDLE hKey = 0;
 #ifndef TD_LEGACY
 	unsigned int KernelSize2 = 0;			// Var used in loops as a max value
 	PAGESections ps[5] = { 0 };				// PE sections that name starts with "PAGE"
@@ -69,48 +80,50 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 
 	// Check whether addresses are cached
 	if (hKey) {
-		if (CompareKernelVersion(hKey)) {
-			// Get cached address offsets for timestamps.
-			int Stamp1 = RegReadValue(hKey, L"Stamp1", NULL, 0),
-				Stamp2 = RegReadValue(hKey, L"Stamp2", NULL, 0);
+		//if (CompareKernelVersion(hKey)) {
+		if(0) {
+			//// Get cached address offsets for timestamps.
+			////int Stamp1 = RegReadValue(hKey, L"Stamp1", NULL, 0),
+			////	Stamp2 = RegReadValue(hKey, L"Stamp2", NULL, 0);
 
-			// Zero first timestamp
-			if (!Stamp1) {
-				// No cached address, assume nothing is cached.
-				goto patchBeginning;
-			}
-			TDPrint("[*] TimeDefuser: Cached addresses are found on registry.\n");
-			TDPrint("[+] TimeDefuser: Cached ExpNtExpirationDate address 0x%p is used.\n", (unsigned long long*)((char*)KernelBase + Stamp1));
-			*(unsigned long long*)((char*)KernelBase+Stamp1) = 0;
-			#ifdef TD_LEGACY
-				// On legacy, for some reason, actual timebomb stamp 
-				// is the next qword (on XP 2526). We will zero that too.
-				*(unsigned long long*)((char*)KernelBase+Stamp1+8) = 0;
-			#endif
-			
-			// Zero second timestamp if available.
-			if (Stamp2) {
-				TDPrint("[+] TimeDefuser: Cached ExpNtExpirationData address 0x%p is used.\n", (char*)KernelBase + Stamp2);
-				#ifdef TD_LEGACY
-					RtlZeroMemory((char*)KernelBase + Stamp2, 16);
-				#else
-					*(unsigned long long*)((char*)KernelBase + Stamp2) = 0;
-				#endif
-			}
+			//// Zero first timestamp
+			////if (!Stamp1) {
+			//if(1) {
+			//	// No cached address, assume nothing is cached.
+			//	goto patchBeginning;
+			//}
+			//TDPrint("[*] TimeDefuser: Cached addresses are found on registry.\n");
+			//TDPrint("[+] TimeDefuser: Cached ExpNtExpirationDate address 0x%p is used.\n", (unsigned long long*)((char*)KernelBase + Stamp1));
+			//*(unsigned long long*)((char*)KernelBase+Stamp1) = 0;
+			//#ifdef TD_LEGACY
+			//	// On legacy, for some reason, actual timebomb stamp 
+			//	// is the next qword (on XP 2526). We will zero that too.
+			//	*(unsigned long long*)((char*)KernelBase+Stamp1+8) = 0;
+			//#endif
+			//
+			//// Zero second timestamp if available.
+			//if (Stamp2) {
+			//	TDPrint("[+] TimeDefuser: Cached ExpNtExpirationData address 0x%p is used.\n", (char*)KernelBase + Stamp2);
+			//	#ifdef TD_LEGACY
+			//		RtlZeroMemory((char*)KernelBase + Stamp2, 16);
+			//	#else
+			//		*(unsigned long long*)((char*)KernelBase + Stamp2) = 0;
+			//	#endif
+			//}
 
-#ifndef TD_LEGACY
-			int Function = RegReadValue(hKey, L"Function", NULL, 0);
-			TDPrint("[+] TimeDefuser: Cached ExGetExpirationDate function address 0x%p is used.\n", (char*)KernelBase + Function);
-			if (!PatchExGetExpirationDate((char*)KernelBase + Function))
-				goto patchFail;
-#endif
-			goto patchOK;
+//#ifndef TD_LEGACY
+			//int Function = RegReadValue(hKey, L"Function", NULL, 0);
+//			TDPrint("[+] TimeDefuser: Cached ExGetExpirationDate function address 0x%p is used.\n", (char*)KernelBase + Function);
+//			if (!PatchExGetExpirationDate((char*)KernelBase + Function))
+//				goto patchFail;
+//#endif
+//			goto patchOK;
 		}
 		// Kernel version mismatch.
 	}
-patchBeginning:
+//patchBeginning:
 	TDPrint("[*] TimeDefuser: No or mismatching cached addresses are found on registry.\n");
-	SaveKernelVersion(hKey);
+	//SaveKernelVersion(hKey);
 #ifdef TD_LEGACY
 	// Search for timebomb stamp in memory
 	KernelSize /= sizeof(unsigned __int64);
@@ -156,12 +169,12 @@ patchBeginning:
 			// Get the function RVA and append it to kernel base address.
 			int* asd = (int*)&KernelBase[i + 1];
 			PotentialTimestamp += asd[1];
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: PAGEDATA Section found at 0x%p with size %d\n", PotentialTimestamp, *(int*)&KernelBase[i + 1]));
+			TDPrint("[+] TimeDefuser: PAGEDATA Section found at 0x%p with size %d\n", PotentialTimestamp, *(int*)&KernelBase[i + 1]);
 			break;
 		}
 	}
 	if (PotentialTimestamp == (unsigned char*)KernelBase) {
-		KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser: PAGEDATA Section not found!\n"));
+		TDPrint("[X] TimeDefuser: PAGEDATA Section not found!\n");
 		goto patchFail;
 	}
 
@@ -169,24 +182,24 @@ patchBeginning:
 	CHAR occurance = FALSE;
 	void* pExpNtExpirationDate = NULL;
 
-	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: searching for stamp at 0x%p in %d bytes\n", PotentialTimestamp, KernelSize2));
+	TDPrint("[+] TimeDefuser: searching for stamp at 0x%p in %d bytes\n", PotentialTimestamp, KernelSize2);
 
 	KernelSize2;
 	for (ULONG i = 0; i < KernelSize2; i++) {
 		if (*(unsigned long long*) & PotentialTimestamp[i] == TimebombStamp) {
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: Timebomb stamp found at 0x%p\n", &PotentialTimestamp[i]));
+			TDPrint("[+] TimeDefuser: Timebomb stamp found at 0x%p\n", &PotentialTimestamp[i]);
 			*(unsigned long long*)(&PotentialTimestamp[i]) = 0;
 			pExpNtExpirationDate = &PotentialTimestamp[i];
 
 			if (occurance) {
 				pExpNtExpirationDate = &PotentialTimestamp[i];
-				RegWriteDword(hKey, L"Stamp2", (ULONG)(&PotentialTimestamp[i] - (unsigned char*)KernelBase));
+				//RegWriteDword(hKey, L"Stamp2", (ULONG)(&PotentialTimestamp[i] - (unsigned char*)KernelBase));
 				occurance = 2;
 				break;
 			}
 			else { 
 				occurance = 1; 
-				RegWriteDword(hKey, L"Stamp1", (ULONG)((unsigned char*)&PotentialTimestamp[i] - (unsigned char*)KernelBase));
+				//RegWriteDword(hKey, L"Stamp1", (ULONG)((unsigned char*)&PotentialTimestamp[i] - (unsigned char*)KernelBase));
 			}
 		}
 	}
@@ -194,13 +207,14 @@ patchBeginning:
 	// Print the address according to occurrance.
 	switch (occurance) {
 		case 0:
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[X] TimeDefuser: can't find ExpNtExpirationDate!\n"));
-			goto patchFail; break;
+			TDPrint("[X] TimeDefuser: can't find ExpNtExpirationDate!\n");
+			goto patchFail; 
+			break;
 		case 1:
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (first occurrance)\n", pExpNtExpirationDate));
+			TDPrint("[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (first occurrance)\n", pExpNtExpirationDate);
 			break;
 		case 2:
-			KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (second occurrance)\n", pExpNtExpirationDate));
+			TDPrint("[+] TimeDefuser: ExpNtExpirationDate address is 0x%p (second occurrance)\n", pExpNtExpirationDate);
 			break;
 	}
 
@@ -248,7 +262,7 @@ patchBeginning:
 						TDPrint("[+] TimeDefuser: CALL instruction found at 0x%p\n", &PotentialTimeRef[i - j]);
 						unsigned char* pExGetExpirationDate = &PotentialTimeRef[i - j + 5];
 						pExGetExpirationDate += *(unsigned int*)&PotentialTimeRef[i - j + 1]; // Next 4 bytes are relative address to our current location.
-						RegWriteDword(hKey, L"Function", (ULONG)(pExGetExpirationDate - (unsigned char*)KernelBase));
+						//RegWriteDword(hKey, L"Function", (ULONG)(pExGetExpirationDate - (unsigned char*)KernelBase));
 						// Check if we are running at one of shit builds, refer to ExGetExpirationDateShim.
 						if (!MmIsAddressValid(pExGetExpirationDate)) {
 							TDPrint("[*] TimeDefuser: Invalid address, skipping this one...\n", pExGetExpirationDate);
@@ -256,7 +270,12 @@ patchBeginning:
 						}
 
 						TDPrint("[+] TimeDefuser: ExGetExpirationDate found at 0x%p\n", pExGetExpirationDate);
+#ifdef _M_IX86
+						// Caller is patched on x86
+						if (!PatchExGetExpirationDate(&PotentialTimeRef[i - j]))
+#else
 						if (!PatchExGetExpirationDate(pExGetExpirationDate))
+#endif
 							goto patchFail;
 						else {
 							goto patchOK;
@@ -283,6 +302,6 @@ patchOK:
 	// Since 1.4, this is the last step so it will stay there in case of failure 
 	// and won't cause any false positives anymore.
 	li->QuadPart = 0; ZwClose(hKey);
-	TDPrint("[*] TimeDefuser: Patch completed successfully.\n");
+	TDPrint("[+] TimeDefuser: Patch completed successfully.\n");
 	return STATUS_SUCCESS;
 }

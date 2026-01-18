@@ -1,0 +1,26 @@
+LIBRARY ntoskrnl.exe
+EXPORTS
+    DbgPrintEx
+    ExAllocatePoolWithTag
+    ExFreePoolWithTag
+    IoAllocateMdl
+    IoFreeMdl
+    MmProbeAndLockPages
+    MmMapLockedPages
+    MmMapLockedPagesSpecifyCache
+    MmProtectMdlSystemAddress
+    MmUnmapLockedPages
+    MmUnlockPages
+    MmIsAddressValid
+    PsGetVersion
+    RtlInitUnicodeString
+    ZwCreateKey
+    ZwSetValueKey
+    ZwQueryValueKey
+    ZwClose
+    ZwQuerySystemInformation
+    memcpy
+    memset
+    wcscmp
+    wcslen
+    swprintf
