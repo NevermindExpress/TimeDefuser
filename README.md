@@ -86,8 +86,9 @@ it's own frestanding build environment that implements just as much as what Time
 
 # Screenshots
 These screenshots are all taken by me.
+![Windows 6776-2026-01-18-22-59-02](https://github.com/user-attachments/assets/86956d0b-6d3b-446f-882a-1f8d4eaeb226)
 ![Windows 7973 x64-2025-05-04-16-08-40](https://github.com/user-attachments/assets/f3d3a116-5b67-4b8f-bd4c-d907485a435b)
-![Windows 8331](https://github.com/user-attachments/assets/b49c313c-2768-4f24-bcfb-1cea1a072d88)
+![Windows 8331 x64-2026-01-18-22-58-14](https://github.com/user-attachments/assets/7d746160-5626-4af5-916f-f57215eeccc0)
 ![Windows 10072 x64-2025-11-10-12-53-19](https://github.com/user-attachments/assets/02bb0087-762a-4a2b-98c9-16b3bf850a0d)
 ![Windows 2526-2025-05-08-17-39-56](https://github.com/user-attachments/assets/24e4f5c9-5cdc-4eae-b91f-dc13bb93a22c)
 
