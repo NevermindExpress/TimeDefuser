@@ -1,6 +1,5 @@
 ﻿#include "TimeDefuser.h"
 
-#ifndef TD_LEGACY
 BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	PMDL mdl = NULL;
 	unsigned char* map = NULL;
@@ -35,10 +34,8 @@ BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	IoFreeMdl(mdl);
 	return TRUE;
 }
-#endif
-#define PDRIVER_OBEJCT void* // Unused by TimeDefuser
 
-NTSTATUS DriverEntry(void* DriverObject, PUNICODE_STRING RegistryPath) {
+NTSTATUS DriverEntry(PDRIVER_OBEJCT DriverObject, PUNICODE_STRING RegistryPath) {
 	LARGE_INTEGER* li = KUSERSystemExpirationDate; // Address of SystemExpirationDate field at KUSER_SHARED_DATA
 	unsigned long long TimebombStamp = 0;	// Expiration date stamp
 	RTL_PROCESS_MODULES ModuleInfo = { 0 };	// Structure used for getting kernel base address
@@ -46,17 +43,16 @@ NTSTATUS DriverEntry(void* DriverObject, PUNICODE_STRING RegistryPath) {
 	ULONG KernelSize = 0;					// Kernel image size
 	//HANDLE hKey = OpenRegistryKey(RegistryPath);
 	HANDLE hKey = 0;
-#ifndef TD_LEGACY
 	unsigned int KernelSize2 = 0;			// Var used in loops as a max value
 	PAGESections ps[5] = { 0 };				// PE sections that name starts with "PAGE"
 	unsigned char* PotentialTimestamp = NULL;// Potential address of ExNtExpirationDate/a
-#endif
+	BOOLEAN Legacy = FALSE;
 
 	// Unrefence unused variables.
 	UNREFERENCED_PARAMETER(DriverObject);
 
 	// Print version info.
-	TDPrint("[*] TimeDefuser: version " td_version td_variant" loaded "
+	TDPrint("[*] TimeDefuser: version " td_version " loaded "
 			"| Compiled on " __DATE__ " " __TIME__ " "
 			"| https://github.com/NevermindExpress/TimeDefuser\n");
 
@@ -67,6 +63,16 @@ NTSTATUS DriverEntry(void* DriverObject, PUNICODE_STRING RegistryPath) {
 		return STATUS_FAILED_DRIVER_ENTRY;
 	}
 	TDPrint("[+] TimeDefuser: SystemExpirationDate is 0x%llx\n", TimebombStamp);
+
+	// Determine if we are running in a legacy system
+	{
+		int verMajor = 0;
+		PsGetVersion(&verMajor, 0, 0, 0);
+		if (verMajor == 5) {
+			TDPrint("[*] TimeDefuser: Legacy system detected.\n");
+			Legacy = TRUE;
+		}
+	}
 
 	// Get kernel base
 	ZwQuerySystemInformation(SystemModuleInformation, &ModuleInfo, sizeof(ModuleInfo), 0);
@@ -80,77 +86,75 @@ NTSTATUS DriverEntry(void* DriverObject, PUNICODE_STRING RegistryPath) {
 
 	// Check whether addresses are cached
 	if (hKey) {
-		//if (CompareKernelVersion(hKey)) {
-		if(0) {
-			//// Get cached address offsets for timestamps.
-			////int Stamp1 = RegReadValue(hKey, L"Stamp1", NULL, 0),
-			////	Stamp2 = RegReadValue(hKey, L"Stamp2", NULL, 0);
+		if (CompareKernelVersion(hKey)) {
+			// Get cached address offsets for timestamps.
+			int Stamp1 = RegReadValue(hKey, L"Stamp1", NULL, 0),
+				Stamp2 = RegReadValue(hKey, L"Stamp2", NULL, 0);
 
-			//// Zero first timestamp
-			////if (!Stamp1) {
-			//if(1) {
-			//	// No cached address, assume nothing is cached.
-			//	goto patchBeginning;
-			//}
-			//TDPrint("[*] TimeDefuser: Cached addresses are found on registry.\n");
-			//TDPrint("[+] TimeDefuser: Cached ExpNtExpirationDate address 0x%p is used.\n", (unsigned long long*)((char*)KernelBase + Stamp1));
-			//*(unsigned long long*)((char*)KernelBase+Stamp1) = 0;
-			//#ifdef TD_LEGACY
-			//	// On legacy, for some reason, actual timebomb stamp 
-			//	// is the next qword (on XP 2526). We will zero that too.
-			//	*(unsigned long long*)((char*)KernelBase+Stamp1+8) = 0;
-			//#endif
-			//
-			//// Zero second timestamp if available.
-			//if (Stamp2) {
-			//	TDPrint("[+] TimeDefuser: Cached ExpNtExpirationData address 0x%p is used.\n", (char*)KernelBase + Stamp2);
-			//	#ifdef TD_LEGACY
-			//		RtlZeroMemory((char*)KernelBase + Stamp2, 16);
-			//	#else
-			//		*(unsigned long long*)((char*)KernelBase + Stamp2) = 0;
-			//	#endif
-			//}
+			// Zero first timestamp
+			if (!Stamp1) {
+				// No cached address, assume nothing is cached.
+				goto patchBeginning;
+			}
+			TDPrint("[*] TimeDefuser: Cached addresses are found on registry.\n");
+			TDPrint("[+] TimeDefuser: Cached ExpNtExpirationDate address 0x%p is used.\n", (unsigned long long*)((char*)KernelBase + Stamp1));
+			*(unsigned long long*)((char*)KernelBase+Stamp1) = 0;
+			if(Legacy) {
+				// On legacy, for some reason, actual timebomb stamp 
+				// is the next qword (on XP 2526). We will zero that too.
+				*(unsigned long long*)((char*)KernelBase + Stamp1 + 8) = 0;
+			}
+			
+			// Zero second timestamp if available.
+			if (Stamp2) {
+				TDPrint("[+] TimeDefuser: Cached ExpNtExpirationData address 0x%p is used.\n", (char*)KernelBase + Stamp2);
+				*(unsigned long long*)((char*)KernelBase + Stamp2) = 0;
+				if (Legacy)
+					*(unsigned long long*)((char*)KernelBase + Stamp2 + 8) = 0;
+			}
 
-//#ifndef TD_LEGACY
-			//int Function = RegReadValue(hKey, L"Function", NULL, 0);
-//			TDPrint("[+] TimeDefuser: Cached ExGetExpirationDate function address 0x%p is used.\n", (char*)KernelBase + Function);
-//			if (!PatchExGetExpirationDate((char*)KernelBase + Function))
-//				goto patchFail;
-//#endif
-//			goto patchOK;
+			if (!Legacy) {
+				int Function = RegReadValue(hKey, L"Function", NULL, 0);
+				TDPrint("[+] TimeDefuser: Cached ExGetExpirationDate function address 0x%p is used.\n", (char*)KernelBase + Function);
+				if (!PatchExGetExpirationDate((char*)KernelBase + Function))
+					goto patchFail;
+			}
+			goto patchOK;
 		}
 		// Kernel version mismatch.
 	}
-//patchBeginning:
+patchBeginning:
 	TDPrint("[*] TimeDefuser: No or mismatching cached addresses are found on registry.\n");
-	//SaveKernelVersion(hKey);
-#ifdef TD_LEGACY
-	// Search for timebomb stamp in memory
-	KernelSize /= sizeof(unsigned __int64);
-	for (unsigned int i = 0; i < KernelSize; i++) {
-		if (KernelBase[i] == TimebombStamp) {
-			TDPrint("[+] TimeDefuser: ExpNtExpirationDate found at 0x%p\n", &KernelBase[i]);
-			KernelBase[i] = 0;
-			// For some reason actual timebomb was the next qword on XP 2526, I'll save this and search for it again.
-			TimebombStamp = KernelBase[i + 1]; // Save the lower part of stamp.
-			KernelBase[i + 1] = 0; // And null where I found it too.
-			RegWriteDword(hKey, L"Stamp1", (ULONG)((unsigned char*)&KernelBase[i] - (unsigned char*)KernelBase));
-			break;
+	SaveKernelVersion(hKey);
+
+	if (Legacy) {
+		// Search for timebomb stamp in memory
+		KernelSize /= sizeof(unsigned __int64);
+		for (unsigned int i = 0; i < KernelSize; i++) {
+			if (KernelBase[i] == TimebombStamp) {
+				TDPrint("[+] TimeDefuser: ExpNtExpirationDate found at 0x%p\n", &KernelBase[i]);
+				KernelBase[i] = 0;
+				// For some reason actual timebomb was the next qword on XP 2526, I'll save this and search for it again.
+				TimebombStamp = KernelBase[i + 1]; // Save the lower part of stamp.
+				KernelBase[i + 1] = 0; // And null where I found it too.
+				RegWriteDword(hKey, L"Stamp1", (ULONG)((unsigned char*)&KernelBase[i] - (unsigned char*)KernelBase));
+				break;
+			}
 		}
+
+		// Search for the second stamp, ExpNtExpirationData (and not Date)
+		for (unsigned int i = 0; i < KernelSize; i++) {
+			if ((int)KernelBase[i] == (int)TimebombStamp) {
+				TDPrint("[+] TimeDefuser: ExpNtExpirationData found at 0x%p\n", &KernelBase[i]);
+				KernelBase[i] = KernelBase[i + 1] = 0;
+				RegWriteDword(hKey, L"Stamp2", (ULONG)((unsigned char*)&KernelBase[i] - (unsigned char*)KernelBase));
+				goto patchOK;
+			}
+		}
+		// That's all for legacy implementation, get out.
+		goto patchOK;
 	}
 
-	// Search for the second stamp, ExpNtExpirationData (and not Date)
-	for (unsigned int i = 0; i < KernelSize; i++) {
-		if ((int)KernelBase[i] == (int)TimebombStamp) {
-			TDPrint("[+] TimeDefuser: ExpNtExpirationData found at 0x%p\n", &KernelBase[i]);
-			RtlZeroMemory(&KernelBase[i], 16);
-			RegWriteDword(hKey, L"Stamp2", (ULONG)((unsigned char*)&KernelBase[i] - (unsigned char*)KernelBase));
-			goto patchOK;
-		}
-	}
-	// That's all for legacy implementation, get out.
-
-#else
 	// Check for PE Header existance.
 	if (*(short*)KernelBase != PEheader) {
 		TDPrint("[X] TimeDefuser: PE Header not found!\n");
@@ -290,8 +294,6 @@ NTSTATUS DriverEntry(void* DriverObject, PUNICODE_STRING RegistryPath) {
 	}
 	// No references found so far so we fail.
 	TDPrint("[X] TimeDefuser: could not find ExpTimeRefreshWork!\n");
-
-#endif
 
 patchFail:
 	TDPrint("[X] TimeDefuser: Patch failed.\n");

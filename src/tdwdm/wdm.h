@@ -17,9 +17,10 @@
 #include <excpt.h>
 #include <dpfilter.h>
 
-//#undef NTSYSAPI
+#define PDRIVER_OBEJCT void* // Unused by TimeDefuser
+
 #define NTKERNELAPI __declspec(dllimport)
-//#define NTSYSAPI
+
 
 // Definitions
 #define TIMER_TOLERABLE_DELAY_BITS      6
@@ -833,7 +834,7 @@ void* __cdecl memcpy(
 
 
 /// ???
-NTKERNELAPI BOOLEAN PsGetVersion(
+NTKERNELAPI BOOLEAN NTAPI PsGetVersion(
     _Out_opt_ PULONG MajorVersion,
     _Out_opt_ PULONG MinorVersion,
     _Out_opt_ PULONG BuildNumber,

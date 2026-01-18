@@ -4,12 +4,7 @@
 #include "tdwdm/wdm.h"
 
 /// Definitions
-#define td_version "1.8.1"
-#ifdef TD_LEGACY
-	#define td_variant " (Legacy)"
-#else
-	#define td_variant ""
-#endif
+#define td_version "1.8.2"
 
 #define SystemModuleInformation 11
 #define PEheader 0x5a4d // MZ
