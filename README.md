@@ -1,10 +1,14 @@
 ﻿# TimeDefuser
-TimeDefuser is a kernel-mode Windows driver that patches the kernel to neutralize the expiration date (a.k.a. timebomb),
-which is seen on most prerelease builds that has been ever compiled.
+TimeDefuser is a Windows kernel security research project on enforcement of expiration dates (a.k.a. "timebomb") on prerelease Windows builds, how to patch them for gaining arbitrary code execution, 
+and a proof-of-concept (shared for education and research purposes) that removes expiration date enforcement from the kernel.
+The PoC driver in this repository patches the timebomb code itself in the kernel, which differs from widespread "activation-based" patches (policy files, registry edits, etc.).
+Thus, it is the most effective and versatile way to neutralize it, unlike activation-based patching methods which are not available in many builds.
 
-This patch patches the timebomb code itself in the kernel so it is the most effective and versatile way to neutralize it, instead of activation patching (i.e. policy files or registry editing) which is not available in many builds.
+All builds are *theoretically* supported, but not all builds are tested. See the notes below and screenshots at the end of this document.
 
-All builds are theoretically supported but not all builds are tested, see the notes for more info, or the end of this readme for screenshots.
+Full whitepaper and technical analysis is located [here](/TimeDefuser-Research.md). The rest of this document is about the PoC driver that removes expiration date enforcement from the system.
+
+# TimeDefuser PoC Driver
 
 > [!WARNING]
 > This driver is intended to remove the **Windows builds'** expiration date only
@@ -13,28 +17,32 @@ It will not remove the expiration date of
 - Your abusive relationship
 - 100-minute Minecraft demo
 - The Pepsi can from 1956 that is inside your fridge for whatever reason
-- Aceyware "Tracey" Operating System version 0.1.3 (or whatever its name ends up being)
+- Aceyware "Tracey" Operating System version 0.1.3 (or whatever it ends up being called)
 - ???
-- Evaluation retail Windows builds. While it theoretically should work, such configuration is not supported and any bug reports regarding to them will be closed without any further action.
+- Evaluation retail Windows builds. While it *may* work, this configuration is unsupported and any related bug reports will be closed.
 
 > [!IMPORTANT]
 > This driver will **not** patch Windows Product Activation or any other similar mechanism. These other mechanisms can be preferred as well in supported builds but here is not their place.
 
-# Notes Per Version
+# Notes
+- A good amount of x64 builds can detect this via PatchGuard (basically a mechanism in Windows kernel that detects unauthorized modifications to kernel code, does not exist in x86).
+Getting over it will weaponize this already versatile patch, so disabling PatchGuard will never be implemented. But as an user, you still have workarounds:
+	- Force enable kernel debugger at boot, which will disable PatchGuard
+	- Patch the kernel image itself with offline patcher, instead of runtime patching with driver.
+- This patch can technically be ported to ARM, ARM64 and Itanium hosts but due to lack of an environment to run and debug Windows on these platforms, this is not possible at the moment.
+
+## Notes Per Version
+
 ### Windows 2000/XP 
-- Use legacy version with those.
-- Also note that alternative methods such as registry edits are available for those.
-- **I KNOW that they do, so don't come to say me "muh set GracePeriod to 0" or "muh use TweakNT"**. This tweak for NT 5.x exists more as proof of concept, and both this patch or other tweaks will do the work. 
+- **I KNOW there are "easier" methods, so don't come to say me "muh set GracePeriod to 0" or "muh use TweakNT"**. This tweak for NT 5.x exists more as proof of concept, and both this patch or other tweaks will do the work. 
 ### Post-reset Windows Vista & Early 7
-- They suck. Avoid using these versions at all. After build expires, buggy WPA breaks the timebomb which makes this patch not get applied anyway, and shows the "Activate Windows" dialog which logs you off if you say no; considering that those builds can skip the windeploy and boot to OOBE/desktop at all in the first place (https://github.com/NevermindExpress/TimeDefuser/issues/3). See https://github.com/NevermindExpress/TimeDefuser/issues/2 and https://github.com/NevermindExpress/TimeDefuser/issues/2#issuecomment-2970226626 for more info.
+- They suck. Avoid using these versions at all. After build expires, buggy WPA breaks the timebomb which makes this patch not get applied anyway, and shows the "Activate Windows" dialog which logs you off if you say no; considering that those builds can successfully finish the windeploy and boot to OOBE/desktop at all in the first place (https://github.com/NevermindExpress/TimeDefuser/issues/3). See https://github.com/NevermindExpress/TimeDefuser/issues/2 and https://github.com/NevermindExpress/TimeDefuser/issues/2#issuecomment-2970226626 for more info.
 - These builds are *wontfix* because there is nothing to fix/can be fixed in the first place. Blame Microsoft.
-- Alternative patch methods should be used for those. See https://github.com/NevermindExpress/TimeDefuser/issues/2#issuecomment-2904890597
 ### Later Windows 7 (at least 67xx and later)
-- Since TimeDefuser 1.7.1 they are now working working without hitting into page fault (see #3), though they are still subject to PatchGuard detections, an active investigation is going for them at #8. 
+- Since TimeDefuser 1.7.1 they are now working working without hitting into page fault (see #3), though they are still subject to PatchGuard detections. 
 ### Windows 8
-- Some builds such as 7880 has a partially broken timebomb that effectively gets disabled if you install at current date instead of rolling it back to pre-expiration before install. See https://github.com/NevermindExpress/TimeDefuser/issues/5
-- Certain builds such as aforementioned are also subject to crashes by PatchGuard, while others such as the ones with the screenshots below are not. See https://github.com/NevermindExpress/TimeDefuser/issues/5#issuecomment-3369399950
-- Few builds can be patched with policy/spp files replacement. **Again, I KNOW 'THEY' CAN BE PATCHED**. "MUH FBL builds can be patched by doing X/can be used at current date without doing anything" well, my thing can patch **ALL** versions (except ones that have superior PatchGuard) while your method can only fix a few builds.
+- Some builds such as 7880 has a partially broken timebomb that effectively gets disabled if you install at current date instead of setting it to pre-expiration before install. See https://github.com/NevermindExpress/TimeDefuser/issues/5
+- **Again, I KNOW 'THEY' CAN BE PATCHED WITH POLICY/SPP FILES REPLACEMENT**. "MUH FBL builds can be patched by doing X/can be used at current date without doing anything" well, my thing can patch **ALL** versions (except ones that have superior PatchGuard) while your method can only fix a few builds.
 ### Windows 10/11
 > [!IMPORTANT]
 > Windows 10 builds are also subject to flight signing, which are code signatures that gets invalid after expiration date, thus preventing system from booting or to be used properly. 
@@ -43,11 +51,11 @@ It will not remove the expiration date of
 
 # Usage
 1. Enable test-signing (disabling driver signature enforcement might also be necessary.)
-2. Download the latest release and obtain "devcon" utility (available in WDK and also in some .cab files).
+2. Download the latest release and obtain "devcon" utility (available in some .cab files and also in WDK).
 3. Execute `devcon install C:\Path\to\TimeDefuser.inf Root\TimeDefuser`
 4. Allow the installition and wait for "Driver Installition Complete" message
 5. If your system didn't crash so far, check expiration date from "winver", if it's not there that means that it worked.
-6. If you want to/need to uninstall, execute `devcon remove Root\TimeDefuser` and reboot (or just delete the .sys file).
+5. If you want to/need to uninstall, go to Device Manager -> System Devices -> TimeDefuser(*your arch*), right click and uninstall, don't forget to tick "delete driver files".
 
 # Testing and Bug Reporting
 The driver can either work correctly, crash the system, fail or work but not enough to fully patch the currently working system.
