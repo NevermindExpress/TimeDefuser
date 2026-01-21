@@ -50,12 +50,25 @@ Getting over it will weaponize this already versatile patch, so disabling PatchG
 - Works on pre-RTM, post-RTM ("insider") builds are untested but they likely are same as pre-RTM unless KASLR is enabled, which is not supported by this driver.
 
 # Usage
+You have three ways to install
+## 1. With "Add Hardware" wizard (hdwwiz.exe)
+1. Enable test-signing (disabling driver signature enforcement might also be necessary.)
+2. Download the latest release and run hdwwiz.exe (or go to "Add legacy hardware" from Device Manager)
+3. Select from list -> System devices -> Have disk -> Select "TimeDefuser.inf"
+4. Install the only one on the list.
+5. If you want to/need to uninstall, go to Device Manager -> System Devices -> TimeDefuser(*your arch*), right click and uninstall, don't forget to tick "delete driver files".
+## 2. With devcon utility
 1. Enable test-signing (disabling driver signature enforcement might also be necessary.)
 2. Download the latest release and obtain "devcon" utility (available in some .cab files and also in WDK).
 3. Execute `devcon install C:\Path\to\TimeDefuser.inf Root\TimeDefuser`
 4. Allow the installition and wait for "Driver Installition Complete" message
 5. If your system didn't crash so far, check expiration date from "winver", if it's not there that means that it worked.
-5. If you want to/need to uninstall, go to Device Manager -> System Devices -> TimeDefuser(*your arch*), right click and uninstall, don't forget to tick "delete driver files".
+6. If you want to/need to uninstall, go to Device Manager -> System Devices -> TimeDefuser(*your arch*), right click and uninstall, don't forget to tick "delete driver files".
+## 3. Install as a service
+1. Enable test-signing (disabling driver signature enforcement might also be necessary.)
+2. `sc create TimeDefuser binPath= C:\Path\to\TimeDefuser-(arch).sys type= kernel start= auto` to install
+3. `sc start TimeDefuser` to run after installition
+4. `sc delete TimeDefuser` to uninstall
 
 # Testing and Bug Reporting
 The driver can either work correctly, crash the system, fail or work but not enough to fully patch the currently working system.
