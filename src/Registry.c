@@ -1,5 +1,11 @@
 #include "TimeDefuser.h"
 
+typedef struct {
+	ULONG Major;
+	ULONG Minor;
+	ULONG Build;
+} tdkernelVersion;
+
 HANDLE OpenRegistryKey(PUNICODE_STRING KeyPath){
 	HANDLE ret = 0;
 	OBJECT_ATTRIBUTES oa;
@@ -71,7 +77,17 @@ ULONG RegReadValue(_In_ HANDLE KeyHandle, _In_ PCWSTR ValueName, _Out_ PVOID Val
 		else {
 			if (kvpi->DataLength < ValueOutputSz) {
 				ret = kvpi->DataLength;
-				RtlCopyMemory(ValueOutput, kvpi->Data, ret);
+				//RtlCopyMemory(ValueOutput, kvpi->Data, ret);
+				// ^^^ this shit fucks up sooo here is a poor man's memcpy
+				char* Data = kvpi->Data;
+				while (kvpi->DataLength >= 8) {
+					*(__int64*)ValueOutput = *(__int64*)Data; Data += 8;
+					(char*)ValueOutput += 8; kvpi->DataLength -= 8;
+				}
+				while (kvpi->DataLength) {
+					*(char*)ValueOutput = Data[0]; Data++;
+					(char*)ValueOutput += 1; kvpi->DataLength--;
+				}
 			}
 			else status = STATUS_INVALID_PARAMETER;
 		}
@@ -85,25 +101,24 @@ ULONG RegReadValue(_In_ HANDLE KeyHandle, _In_ PCWSTR ValueName, _Out_ PVOID Val
 NTSTATUS SaveKernelVersion(_In_ HANDLE hKey) {
 	UNICODE_STRING valName;
 	NTSTATUS status;
+	ULONG major, minor, build;
+	tdkernelVersion ver;
 
 	RtlInitUnicodeString(&valName, L"KernelVersion");
 
-	ULONG major, minor, build;
 	PsGetVersion(&major, &minor, &build, NULL);
 
-	WCHAR kernelVersionString[64] = L"";
-	swprintf(kernelVersionString, 64, L"%u.%u.%u", major, minor, build);
-	
-
-	SIZE_T len = (wcslen(kernelVersionString) + 1) * sizeof(WCHAR);
+	ver.Major = major;
+	ver.Minor = minor;
+	ver.Build = build;
 
 	status = ZwSetValueKey(
 		hKey,
 		&valName,
 		0,
-		REG_SZ,
-		(PVOID)kernelVersionString,
-		(ULONG)len
+		REG_BINARY,
+		&ver,
+		sizeof(ver)
 		);
 
 	return status;
@@ -112,14 +127,18 @@ NTSTATUS SaveKernelVersion(_In_ HANDLE hKey) {
 BOOLEAN CompareKernelVersion(_In_ HANDLE hKey) {
 	// Firstly we will read the version of current kernel and make it a string.
 	ULONG major, minor, build;
+	tdkernelVersion currentVer = { 0 }, regVer = { 0 };
 	PsGetVersion(&major, &minor, &build, NULL);
-	WCHAR kernelVersionCurrent[64] = L"";
-	swprintf(kernelVersionCurrent, 64, L"%u.%u.%u", major, minor, build);
+
+	currentVer.Major = major;
+	currentVer.Minor = minor;
+	currentVer.Build = build;
 
 	// Then we will get the value from registry.
-	WCHAR kernelVersionReg[64] = L"";
-	if (!RegReadValue(hKey, L"KernelVersion", kernelVersionReg, 64)) return FALSE;
+	if (!RegReadValue(hKey, L"KernelVersion", &regVer, sizeof(regVer))) return FALSE;
 
 	// Lastly we will compare and return.
-	return wcscmp(kernelVersionCurrent, kernelVersionReg) == 0;
+	return currentVer.Major == regVer.Major &&
+		currentVer.Minor == regVer.Minor &&
+		currentVer.Build == regVer.Build;
 }

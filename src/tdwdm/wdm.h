@@ -96,12 +96,6 @@
                                   &                           \
                                  (~SYNCHRONIZE))
 
-// end_access
-
-//
-// Open/Create Options
-//
-
 #define REG_OPTION_RESERVED         (0x00000000L)   // Parameter is reserved
 
 #define REG_OPTION_NON_VOLATILE     (0x00000000L)   // Key is preserved
@@ -132,10 +126,37 @@
                  REG_OPTION_BACKUP_RESTORE      |\
                  REG_OPTION_OPEN_LINK)
 
-#define REG_SZ                      ( 1ul ) // Unicode nul terminated string
+#define REG_BINARY                  ( 3ul ) // Free form binary
 #define REG_DWORD                   ( 4ul ) // 32-bit number
 
+#define far
+#define near
+
 typedef CCHAR KPROCESSOR_MODE;
+typedef unsigned long       DWORD;
+typedef int                 BOOL;
+typedef unsigned char       BYTE;
+typedef unsigned short      WORD;
+typedef float               FLOAT;
+typedef FLOAT* PFLOAT;
+typedef BOOL near* PBOOL;
+typedef BOOL far* LPBOOL;
+typedef BYTE near* PBYTE;
+typedef BYTE far* LPBYTE;
+typedef int near* PINT;
+typedef int far* LPINT;
+typedef WORD near* PWORD;
+typedef WORD far* LPWORD;
+typedef long far* LPLONG;
+typedef DWORD near* PDWORD;
+typedef DWORD far* LPDWORD;
+typedef void far* LPVOID;
+typedef CONST void far* LPCVOID;
+
+typedef int                 INT;
+typedef unsigned int        UINT;
+typedef unsigned int*       PUINT;
+
 
 typedef enum _MODE {
 	KernelMode,
@@ -186,22 +207,10 @@ typedef _Enum_is_bitflag_ enum _POOL_TYPE {
     PagedPoolCacheAligned,
     NonPagedPoolCacheAlignedMustS = NonPagedPool + 6,
     MaxPoolType,
-
-    //
-    // Define base types for NonPaged (versus Paged) pool, for use in cracking
-    // the underlying pool type.
-    //
-
     NonPagedPoolBase = 0,
     NonPagedPoolBaseMustSucceed = NonPagedPoolBase + 2,
     NonPagedPoolBaseCacheAligned = NonPagedPoolBase + 4,
     NonPagedPoolBaseCacheAlignedMustS = NonPagedPoolBase + 6,
-
-    //
-    // Note these per session types are carefully chosen so that the appropriate
-    // masking still applies as well as MaxPoolType above.
-    //
-
     NonPagedPoolSession = 32,
     PagedPoolSession = NonPagedPoolSession + 1,
     NonPagedPoolMustSucceedSession = PagedPoolSession + 1,
@@ -817,21 +826,7 @@ NTSYSAPI VOID NTAPI RtlInitUnicodeString(
     _Out_ PUNICODE_STRING DestinationString,
     _In_opt_z_ __drv_aliasesMem PCWSTR SourceString
 );
-
-int __cdecl swprintf(
-    wchar_t* buffer,
-    size_t count,
-    const wchar_t* format,
-    ...
-);
-
-void* __cdecl memcpy(
-    _Out_writes_bytes_all_(_Size) void* _Dst,
-    _In_reads_bytes_(_Size)       void const* _Src,
-    _In_                          size_t      _Size
-);
 #define RtlCopyMemory(Destination,Source,Length) memcpy((Destination),(Source),(Length))
-
 
 /// ???
 NTKERNELAPI BOOLEAN NTAPI PsGetVersion(

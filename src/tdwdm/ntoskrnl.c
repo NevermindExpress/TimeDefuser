@@ -167,7 +167,7 @@ NTKERNELAPI NTSTATUS NTAPI ZwQuerySystemInformation(
     return 0;
 }
 
-NTKERNELAPI int __cdecl swprintf(wchar_t* buffer, size_t count, const wchar_t* format, ...)
+NTKERNELAPI int __stdcall swprintf(wchar_t* buffer, size_t count, const wchar_t* format, ...)
 {
     return 0;
 }

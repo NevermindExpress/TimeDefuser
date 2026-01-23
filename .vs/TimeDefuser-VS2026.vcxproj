@@ -119,6 +119,8 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitDefaultLibName>true</OmitDefaultLibName>
       <CallingConvention>StdCall</CallingConvention>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
     </ClCompile>
     <Link>
       <SubSystem>Native</SubSystem>
@@ -175,6 +177,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Native</SubSystem>
@@ -217,9 +220,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\src\TimeDefuser.inf" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="..\src\TimeDefuser.rc" />
   </ItemGroup>
   <ItemGroup>
@@ -229,6 +229,10 @@
   <ItemGroup>
     <ClInclude Include="..\src\resource.h" />
     <ClInclude Include="..\src\TimeDefuser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" />
+    <None Include="..\TimeDefuser-Research.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

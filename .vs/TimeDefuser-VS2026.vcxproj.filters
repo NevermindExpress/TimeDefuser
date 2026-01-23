@@ -13,9 +13,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\TimeDefuser.inf" />
+    <Filter Include="Documentation">
+      <UniqueIdentifier>{042252ca-9640-435a-957f-683ba38dd0d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\TimeDefuser.rc">
@@ -37,5 +37,13 @@
     <ClInclude Include="..\src\TimeDefuser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\TimeDefuser-Research.md">
+      <Filter>Documentation</Filter>
+    </None>
   </ItemGroup>
 </Project>

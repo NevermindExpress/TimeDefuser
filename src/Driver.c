@@ -1,5 +1,15 @@
 ﻿#include "TimeDefuser.h"
 
+#ifdef _M_IX86
+void* __cdecl memset(void* dest, int c, size_t count) {
+	unsigned char* p = (unsigned char*)dest;
+	while (count--) {
+		*p++ = (unsigned char)c;
+	}
+	return dest;
+}
+#endif // _M_IX86
+
 BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	PMDL mdl = NULL;
 	unsigned char* map = NULL;
@@ -41,12 +51,13 @@ NTSTATUS DriverEntry(PDRIVER_OBEJCT DriverObject, PUNICODE_STRING RegistryPath) 
 	RTL_PROCESS_MODULES ModuleInfo = { 0 };	// Structure used for getting kernel base address
 	unsigned long long* KernelBase = NULL;	// Kernel Base address
 	ULONG KernelSize = 0;					// Kernel image size
-	//HANDLE hKey = OpenRegistryKey(RegistryPath);
-	HANDLE hKey = 0;
+	HANDLE hKey = OpenRegistryKey(RegistryPath);
+	//HANDLE hKey = 0;
 	unsigned int KernelSize2 = 0;			// Var used in loops as a max value
 	PAGESections ps[5] = { 0 };				// PE sections that name starts with "PAGE"
 	unsigned char* PotentialTimestamp = NULL;// Potential address of ExNtExpirationDate/a
 	BOOLEAN Legacy = FALSE;
+	int verMajor = 0;
 
 	// Unrefence unused variables.
 	UNREFERENCED_PARAMETER(DriverObject);
@@ -55,6 +66,8 @@ NTSTATUS DriverEntry(PDRIVER_OBEJCT DriverObject, PUNICODE_STRING RegistryPath) 
 	TDPrint("[*] TimeDefuser: version " td_version " loaded "
 			"| Compiled on " __DATE__ " " __TIME__ " "
 			"| https://github.com/NevermindExpress/TimeDefuser\n");
+
+	//TDPrint("[*] TimeDefuser: RegistryPath: %ws\n",RegistryPath->Buffer);
 
 	// Get SystemExpirationDate
 	TimebombStamp = li->QuadPart;
@@ -66,7 +79,6 @@ NTSTATUS DriverEntry(PDRIVER_OBEJCT DriverObject, PUNICODE_STRING RegistryPath) 
 
 	// Determine if we are running in a legacy system
 	{
-		int verMajor = 0;
 		PsGetVersion(&verMajor, 0, 0, 0);
 		if (verMajor == 5) {
 			TDPrint("[*] TimeDefuser: Legacy system detected.\n");
@@ -113,6 +125,7 @@ NTSTATUS DriverEntry(PDRIVER_OBEJCT DriverObject, PUNICODE_STRING RegistryPath) 
 					*(unsigned long long*)((char*)KernelBase + Stamp2 + 8) = 0;
 			}
 
+			// ExGetExpirationDate Function if not legacy.
 			if (!Legacy) {
 				int Function = RegReadValue(hKey, L"Function", NULL, 0);
 				TDPrint("[+] TimeDefuser: Cached ExGetExpirationDate function address 0x%p is used.\n", (char*)KernelBase + Function);
@@ -197,13 +210,13 @@ patchBeginning:
 
 			if (occurance) {
 				pExpNtExpirationDate = &PotentialTimestamp[i];
-				//RegWriteDword(hKey, L"Stamp2", (ULONG)(&PotentialTimestamp[i] - (unsigned char*)KernelBase));
+				RegWriteDword(hKey, L"Stamp2", (ULONG)(&PotentialTimestamp[i] - (unsigned char*)KernelBase));
 				occurance = 2;
 				break;
 			}
 			else { 
 				occurance = 1; 
-				//RegWriteDword(hKey, L"Stamp1", (ULONG)((unsigned char*)&PotentialTimestamp[i] - (unsigned char*)KernelBase));
+				RegWriteDword(hKey, L"Stamp1", (ULONG)((unsigned char*)&PotentialTimestamp[i] - (unsigned char*)KernelBase));
 			}
 		}
 	}
@@ -225,7 +238,7 @@ patchBeginning:
 	// Search for PAGE section at PE sections. This section or one of the next three sections is where the 
 	// "ExpTimeRefreshWork" function is located at, which later calls a function named "ExGetExpirationDate".
 	// Due to it's variable being, we will search the PAGE section and next three sections.
-
+	
 	for (size_t i = 0; i < 768; i++) {
 		if (KernelBase[i] == sectNamePAGELK) { // Check if we found the PAGELK\0\0 section name.
 			int* temp = (int*)&KernelBase[i + 1];
@@ -266,7 +279,7 @@ patchBeginning:
 						TDPrint("[+] TimeDefuser: CALL instruction found at 0x%p\n", &PotentialTimeRef[i - j]);
 						unsigned char* pExGetExpirationDate = &PotentialTimeRef[i - j + 5];
 						pExGetExpirationDate += *(unsigned int*)&PotentialTimeRef[i - j + 1]; // Next 4 bytes are relative address to our current location.
-						//RegWriteDword(hKey, L"Function", (ULONG)(pExGetExpirationDate - (unsigned char*)KernelBase));
+						
 						// Check if we are running at one of shit builds, refer to ExGetExpirationDateShim.
 						if (!MmIsAddressValid(pExGetExpirationDate)) {
 							TDPrint("[*] TimeDefuser: Invalid address, skipping this one...\n", pExGetExpirationDate);
@@ -276,13 +289,16 @@ patchBeginning:
 						TDPrint("[+] TimeDefuser: ExGetExpirationDate found at 0x%p\n", pExGetExpirationDate);
 #ifdef _M_IX86
 						// Caller is patched on x86
-						if (!PatchExGetExpirationDate(&PotentialTimeRef[i - j]))
+						if (PatchExGetExpirationDate(&PotentialTimeRef[i - j])) {
+							RegWriteDword(hKey, L"Function", (ULONG)(&PotentialTimeRef[i - j] - (unsigned char*)KernelBase));
 #else
-						if (!PatchExGetExpirationDate(pExGetExpirationDate))
+						if (PatchExGetExpirationDate(pExGetExpirationDate)) {
+							RegWriteDword(hKey, L"Function", (ULONG)(pExGetExpirationDate - (unsigned char*)KernelBase));
 #endif
-							goto patchFail;
-						else {
 							goto patchOK;
+						}
+						else {
+							goto patchFail;
 						}
 
 

@@ -19,8 +19,3 @@ EXPORTS
     ZwQueryValueKey
     ZwClose
     ZwQuerySystemInformation
-    memcpy
-    memset
-    wcscmp
-    wcslen
-    swprintf
