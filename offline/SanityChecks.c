@@ -50,7 +50,13 @@ bool tdSanityCheck(char* data, IMAGE_NT_HEADERS** nt) {
 	}
 	// Has resources. Now we gotta find where they are in image. 
 	// Find the .rsrc section
-	IMAGE_SECTION_HEADER* sect = tdFindSection(".rsrc\0\0", (IMAGE_SECTION_HEADER*)(*nt + 1));
+	IMAGE_SECTION_HEADER* sect = NULL;
+
+	if ((*nt)->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+		sect = tdFindSection(".rsrc\0\0", (IMAGE_SECTION_HEADER*)((IMAGE_NT_HEADERS64*)*nt + 1));
+	else
+		sect = tdFindSection(".rsrc\0\0", (IMAGE_SECTION_HEADER*)((IMAGE_NT_HEADERS32*)*nt + 1));
+
 	if (!sect) {
 		printf("[-] Not a kernel image (no resources).\n");
 		return 0;

@@ -32,9 +32,14 @@ Getting over it will weaponize this already versatile patch, so disabling PatchG
 	- Patch the kernel image itself with offline patcher, instead of runtime patching with driver.
 - This patch can technically be ported to ARM, ARM64 and Itanium hosts but due to lack of an environment to run and debug Windows on these platforms, this is not possible at the moment.
 
+## Notes for Offline Patcher
+- Do not use kernel driver with offline patched systems, as the driver is nonfunctional with patched kernels (as there is nothing to remove).
+- Windows XP and earlier builds are not supported, usage of kernel driver is required for those builds.
+
 ## Notes Per Version
 
 ### Windows 2000/XP 
+- As written above, these builds does not support offline patching.
 - **I KNOW there are "easier" methods, so don't come to say me "muh set GracePeriod to 0" or "muh use TweakNT"**. This tweak for NT 5.x exists more as proof of concept, and both this patch or other tweaks will do the work. 
 ### Post-reset Windows Vista & Early 7
 - They suck. Avoid using these versions at all. After build expires, buggy WPA breaks the timebomb which makes this patch not get applied anyway, and shows the "Activate Windows" dialog which logs you off if you say no; considering that those builds can successfully finish the windeploy and boot to OOBE/desktop at all in the first place (https://github.com/NevermindExpress/TimeDefuser/issues/3). See https://github.com/NevermindExpress/TimeDefuser/issues/2 and https://github.com/NevermindExpress/TimeDefuser/issues/2#issuecomment-2970226626 for more info.

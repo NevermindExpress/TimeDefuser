@@ -4,7 +4,7 @@
 	#error You are not supposed to use this header in the kernel driver.
 #endif // !TD_OFFLINE
 
-#define td_version "1.8"
+#define td_version "1.8.4"
 
 // Includes
 #include <stdio.h>
@@ -20,7 +20,7 @@ typedef struct TD_MACHINE {
 	const char* FriendlyName;
 	unsigned int ShellCode; // Shell code for "return 0" that will be patched to the function.
 	__int64 SharedData; // Where "ExpirationDate" on KUSER_SHARED_DATA is
-	bool w64; unsigned char callOp;
+	bool is64; unsigned char callOp;
 } TDMachine;
 
 typedef struct {

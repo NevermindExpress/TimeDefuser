@@ -1,6 +1,6 @@
 ﻿#include "TimeDefuser.h"
 
-#ifdef _M_IX86
+#pragma function(memset)
 void* __cdecl memset(void* dest, int c, size_t count) {
 	unsigned char* p = (unsigned char*)dest;
 	while (count--) {
@@ -8,7 +8,6 @@ void* __cdecl memset(void* dest, int c, size_t count) {
 	}
 	return dest;
 }
-#endif // _M_IX86
 
 BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 	PMDL mdl = NULL;

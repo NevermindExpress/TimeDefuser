@@ -4,7 +4,7 @@
 #include "tdwdm/wdm.h"
 
 /// Definitions
-#define td_version "1.8.3"
+#define td_version "1.8.4"
 
 #define SystemModuleInformation 11
 #define PEheader 0x5a4d // MZ

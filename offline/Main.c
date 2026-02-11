@@ -48,6 +48,10 @@ int main(int argc, char* argv[]) {
 	DWORD sz = 0; // File size
 	wchar_t* dupFilePath = tdGetDupFilePath(); // Name for duplicated file.
 	wchar_t* openFilePath; // Path of kernel image to open.
+	PVOID unusedOldVal = NULL;
+
+	// Disable filesystem redirection if running under WoW64
+	Wow64DisableWow64FsRedirection(&unusedOldVal);
 
 	// Enable proper Unicode output
 	SetConsoleOutputCP(CP_UTF8);
@@ -122,12 +126,17 @@ int main(int argc, char* argv[]) {
 
 	// Check version.
 	if (nt->OptionalHeader.MajorSubsystemVersion < 6) {
-		puts("[-] Windows XP builds are not supported. For those, you have to use the Legacy kernel driver.");
+		puts("[-] Windows XP builds are not supported. For those, you have to use the kernel driver.");
 		failed = 1; goto _Return;
 	}
 
 	// All check and stuff are done, now actual patching work begins. First we'll need to find where to patch.
-	IMAGE_SECTION_HEADER* PAGELK = tdFindSection("PAGELK\0", (IMAGE_SECTION_HEADER*)(nt + 1));
+	IMAGE_SECTION_HEADER* PAGELK;
+	if (mach->is64)
+		PAGELK = tdFindSection("PAGELK\0", (IMAGE_SECTION_HEADER*)((IMAGE_NT_HEADERS64*)nt + 1));
+	else
+		PAGELK = tdFindSection("PAGELK\0", (IMAGE_SECTION_HEADER*)((IMAGE_NT_HEADERS32*)nt + 1));
+
 	if (!PAGELK) {
 		puts("[-] PAGELK section not found.");
 		failed = 1; goto _Return;
@@ -135,18 +144,31 @@ int main(int argc, char* argv[]) {
 	printf("[+] Searching at 0x%x within 0x%x bytes...\n", PAGELK->PointerToRawData, (int)sz - PAGELK->PointerToRawData);
 	data += PAGELK->PointerToRawData;
 	for (size_t i = 0; i < sz - PAGELK->PointerToRawData; i++) {
-		if ((mach->w64 && *(__int64*)&data[i] == mach->SharedData)
-			|| (!mach->w64 && *(int*)&data[i] == mach->SharedData)) {
+		if ((mach->is64 && *(__int64*)&data[i] == mach->SharedData)
+			|| (!mach->is64 && *(int*)&data[i] == (int)mach->SharedData)) {
 			// We found the time refresh work, search backwards for a CALL instruction
+#ifdef _WIN64
 			printf("[+] ExGetExpirationDate found at 0x%llx\n", &data[i]-data0);
+#else
+			printf("[+] ExGetExpirationDate found at 0x%lx\n", &data[i] - data0);
+#endif
 			for (unsigned char k = 0; k < 100; k++) {
 				if ((unsigned char)data[i - k] == mach->callOp) { // CALL instruction found.
+#ifdef _WIN64
 					printf("[+] CALL instruction found at file: 0x%llx ", &data[i - k] - data0);
+#else
+					printf("[+] CALL instruction found at file: 0x%lx ", &data[i - k] - data0);
+#endif
 					int pCall = &data[i - k] - data0;
 					unsigned int Offset = *(unsigned int*)&data[i - k + 1] + 5; // Next 4 bytes are relative address to our current location.
 
 					// Convert file offset to RVA
-					IMAGE_SECTION_HEADER* currentSect = tdFindSectionByAddress((unsigned int)pCall, (IMAGE_SECTION_HEADER*)(nt + 1));
+					IMAGE_SECTION_HEADER* currentSect = NULL;
+					if(mach->is64)
+						currentSect = tdFindSectionByAddress((unsigned int)pCall, (IMAGE_SECTION_HEADER*)((IMAGE_NT_HEADERS64*)nt + 1));
+					else
+						currentSect = tdFindSectionByAddress((unsigned int)pCall, (IMAGE_SECTION_HEADER*)((IMAGE_NT_HEADERS32*)nt + 1));
+
 					if (!currentSect) {
 						puts("\n[*] Invalid address, skipping this one...");
 						continue;
@@ -160,6 +182,11 @@ int main(int argc, char* argv[]) {
 
 					// Convert this new RVA back to file offset.
 					currentSect = tdFindSectionByRVA(pCallRVA, (IMAGE_SECTION_HEADER*)(nt + 1));
+					if (mach->is64)
+						currentSect = tdFindSectionByRVA(pCallRVA, (IMAGE_SECTION_HEADER*)((IMAGE_NT_HEADERS64*)nt + 1));
+					else
+						currentSect = tdFindSectionByRVA(pCallRVA, (IMAGE_SECTION_HEADER*)((IMAGE_NT_HEADERS32*)nt + 1));
+
 					if (!currentSect) {
 						puts("\n[*] Invalid address, skipping this one...");
 						continue;
