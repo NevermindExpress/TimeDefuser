@@ -76,6 +76,7 @@
     <GenerateManifest>false</GenerateManifest>
     <LibraryPath>$(SolutionDir)\src\tdwdm\lib\$(PlatformTarget)\;$(LibraryPath)</LibraryPath>
     <TargetExt>.sys</TargetExt>
+    <TargetName>TimeDefuser-$(PlatformTarget)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)Out\$(Configuration)\</OutDir>
@@ -83,6 +84,7 @@
     <GenerateManifest>false</GenerateManifest>
     <LibraryPath>$(SolutionDir)\src\tdwdm\lib\$(PlatformTarget)\;$(LibraryPath)</LibraryPath>
     <TargetExt>.sys</TargetExt>
+    <TargetName>TimeDefuser-$(PlatformTarget)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Out\$(Configuration)\</OutDir>

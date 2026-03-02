@@ -10,7 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TimeDefuser-VS2022", ".vs\T
 		{E7B0924E-932A-4AD5-8085-2EA288F92D21} = {E7B0924E-932A-4AD5-8085-2EA288F92D21}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tdwdm-VS2022", ".vs\tdwdm-VS2022\tdwdm-VS2022.vcxproj", "{E7B0924E-932A-4AD5-8085-2EA288F92D21}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tdwdm-VS2022", ".vs\tdwdm-VS2022.vcxproj", "{E7B0924E-932A-4AD5-8085-2EA288F92D21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

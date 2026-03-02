@@ -30,7 +30,7 @@ BOOLEAN PatchExGetExpirationDate(void* pExGetExpirationDate) {
 #ifdef _M_IX86
 	*(int*)map = 0x9090C031; // xor eax,eax \ times 2 nop
 	map[4] = 0x90; // nop
-	if (map[-5] = 0x68) { // Possibly unnecessary sanity check for a preceding push instruction
+	if (map[-5] == 0x68) {
 		*(int*)(map - 4) = 0x90909090; // times 4 nop
 		map[-5] = 0x90; // nop
 	}

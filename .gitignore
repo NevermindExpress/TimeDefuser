@@ -16,4 +16,4 @@ Intermediate
 *.obj
 .vs/*.sln/*
 .vs/*.slnx/*
-.vs/TimeDefuser/*
+.vs/TimeDefuser*/*
