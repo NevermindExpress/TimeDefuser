@@ -96,6 +96,7 @@ This research is also bundled with a practical Proof-of-Concept (PoC) implementa
 ## 7. Threat Model and Abuse Potential
 While this research focuses on expiration enforcement mechanisms, the techniques described are broadly applicable to kernel patching and runtime modification of enforcement logic. 
 In a threat context, these routines can be modified to do any arbitrary and potentially malicious activities with a frequency of once per hour.
+
 ## 8. Responsible Use and Ethical Considerations
 This research is conducted and presented for educational, defensive, and academic purposes. The techniques described are intended to improve understanding of kernel enforcement mechanisms, 
 tamper resistance, and system integrity, and to contribute to the broader field of operating system security research.

@@ -53,7 +53,7 @@ Getting over it will weaponize this already versatile patch, so disabling PatchG
 > [!IMPORTANT]
 > Windows 10 builds are also subject to flight signing, which are code signatures that gets invalid after expiration date, thus preventing system from booting or to be used properly. 
 > Getting over this requires additional work (resigning all binaries and disabling integrity checks, or patching bootloader & ci.dll) which is not covered by this project.
-- Works on pre-RTM, post-RTM ("insider") builds are untested but they likely are same as pre-RTM unless KASLR is enabled, which is not supported by this driver.
+- Tested on pre-RTM Windows 10 and early Windows 11 insider builds (i.e. 21390). Builds with security features enabled such as KASLR are not tested.
 
 # Usage
 Since TimeDefuser 1.8.3, INF file is deprecated and the driver is instead installed as a service with `sc.exe`. A script for installing named `Installer.bat` will be bundled with subsequent releases.
@@ -102,10 +102,11 @@ These screenshots are all taken by me.
 ![Windows 7973 x64-2025-05-04-16-08-40](https://github.com/user-attachments/assets/f3d3a116-5b67-4b8f-bd4c-d907485a435b)
 ![Windows 8331 x64-2026-01-18-22-58-14](https://github.com/user-attachments/assets/7d746160-5626-4af5-916f-f57215eeccc0)
 ![Windows 10072 x64-2025-11-10-12-53-19](https://github.com/user-attachments/assets/02bb0087-762a-4a2b-98c9-16b3bf850a0d)
+<img width="1027" height="768" alt="Windows 21390-2026-06-06-19-18-48" src="https://github.com/user-attachments/assets/55181240-6974-4fdd-9d9b-ae2fd004c11b" />
 ![Windows 2526-2025-05-08-17-39-56](https://github.com/user-attachments/assets/24e4f5c9-5cdc-4eae-b91f-dc13bb93a22c)
 
 # Thanks to
-- **Microsoft** for Windows, Windbg and all else.
+- **Microsoft** for Windows, WinDbg and all else.
 - **archive.org and BetaArchive** for preserving beta builds and debug symbols.
 - **Dimitrios Vlachos** for showing interest while I was developing this.
 - **All the precious testers** that opened up issues.

@@ -4,7 +4,7 @@
 #include "tdwdm/wdm.h"
 
 /// Definitions
-#define td_version "1.8.4.1"
+#define td_version "1.8.4.2"
 
 #define SystemModuleInformation 11
 #define PEheader 0x5a4d // MZ
@@ -13,7 +13,7 @@
 #define sectNamePAGE		0x0000000045474150 // "PAGE\0\0\0\0"
 
 #if defined(AMD64)
-	#define KUSERSystemExpirationDate (LARGE_INTEGER*)0xfffff780000002c8;
+	#define KUSERSystemExpirationDate (LARGE_INTEGER*)0xfffff780000002c8; // c802000080f7ffff
 	typedef unsigned __int64 ptr_t;
 #elif defined(i386)
 	#define KUSERSystemExpirationDate (LARGE_INTEGER*)0xffdf02c8;

@@ -1,3 +1,4 @@
+@echo off
 rem ====================================================
 rem	TimeDefuser Service Installer Script
 rem
