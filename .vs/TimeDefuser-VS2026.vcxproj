@@ -189,7 +189,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
       <Driver>Driver</Driver>
-      <BaseAddress>0x10000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>

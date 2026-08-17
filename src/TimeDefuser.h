@@ -4,13 +4,11 @@
 #include "tdwdm/wdm.h"
 
 /// Definitions
-#define td_version "1.8.4.2"
+#define td_version "1.9"
 
 #define SystemModuleInformation 11
-#define PEheader 0x5a4d // MZ
-#define sectNamePAGEDATA	0x4154414445474150 // "PAGEDATA"
-#define sectNamePAGELK		0x00004B4C45474150 // "PAGELK\0\0"
-#define sectNamePAGE		0x0000000045474150 // "PAGE\0\0\0\0"
+#define IMAGE_DOS_SIGNATURE 0x5a4d // MZ
+#define IMAGE_NT_SIGNATURE  0x00004550  // PE00
 
 #if defined(AMD64)
 	#define KUSERSystemExpirationDate (LARGE_INTEGER*)0xfffff780000002c8; // c802000080f7ffff
@@ -22,6 +20,19 @@
 	#error Unsupported architecture.
 #endif
 
+/// Section Names
+static const unsigned char Sections[][8] = {
+	{ 'P','A','G','E', 0,0,0,0 },
+	{ 'P','A','G','E','L','K',0,0 },
+	{ 'P','A','G','E','K','D',0,0 },
+	{ 'P','A','G','E','D','A','T','A' },
+	{ 'P','A','G','E','V','R','F','Y' },
+	{ 'P','A','G','E','V','R','F','B' },
+	{ 'P','A','G','E','B','G','F','X' },
+	{ 'P','A','G','E','H','D','L','S' },
+	{ '.','t','e','x','t',0,0,0 },
+	{ 'I','N','I','T',0,0,0,0 },
+};
 /// TimeDefuser Structures
 typedef struct {
 	unsigned long RVA;
@@ -29,6 +40,40 @@ typedef struct {
 } PAGESections;
 
 /// Windows NT Structures
+#pragma pack(push, 1)
+typedef struct _IMAGE_DOS_HEADER {
+	WORD e_magic;
+	char  unused[58];
+	LONG e_lfanew;
+} IMAGE_DOS_HEADER;
+
+typedef struct _IMAGE_FILE_HEADER {
+	WORD    Machine;
+	WORD    NumberOfSections;
+	DWORD   TimeDateStamp;
+	DWORD   PointerToSymbolTable;
+	DWORD   NumberOfSymbols;
+	WORD    SizeOfOptionalHeader;
+	WORD    Characteristics;
+} IMAGE_FILE_HEADER;
+
+typedef struct _IMAGE_SECTION_HEADER {
+	BYTE    Name[8];
+	union {
+		DWORD   PhysicalAddress;
+		DWORD   VirtualSize;
+	} Misc;
+	DWORD   VirtualAddress;
+	DWORD   SizeOfRawData;
+	DWORD   PointerToRawData;
+	DWORD   PointerToRelocations;
+	DWORD   PointerToLinenumbers;
+	WORD    NumberOfRelocations;
+	WORD    NumberOfLinenumbers;
+	DWORD   Characteristics;
+} IMAGE_SECTION_HEADER;
+#pragma pack(pop)
+
 typedef struct _RTL_PROCESS_MODULE_INFORMATION {
 	PVOID Section;
 	PVOID MappedBase;
