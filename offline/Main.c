@@ -1,4 +1,4 @@
-﻿#define TD_OFFLINE
+#define TD_OFFLINE
 #include "TimeDefuserOffline.h"
 
 wchar_t* tdGetDupFilePath() {
@@ -120,7 +120,10 @@ int main(int argc, char* argv[]) {
 	printf("(%s, %lu bytes)\n", mach->FriendlyName, sz);
 
 	if (nt->FileHeader.Machine != IMAGE_FILE_MACHINE_I386 && nt->FileHeader.Machine != IMAGE_FILE_MACHINE_AMD64) {
-		puts("[-] This machine type is not yet supported, please open an issue at https://github.com/NevermindExpress/TimeDefuser/issues.");
+		if(nt->FileHeader.Machine == IMAGE_FILE_MACHINE_ARM || nt->FileHeader.Machine == IMAGE_FILE_MACHINE_ARM64)
+			puts("[*] ARM Windows NT builds does not feature a working timebomb, this patch is not needed.");
+		else
+			puts("[-] This machine type is not yet supported, please open an issue at https://github.com/NevermindExpress/TimeDefuser/issues.");
 		failed = 1; goto _Return;
 	}
 

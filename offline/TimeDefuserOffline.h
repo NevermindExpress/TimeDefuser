@@ -1,10 +1,10 @@
-﻿// Simplified header for offline version of TimeDefuser
+// Simplified header for offline version of TimeDefuser
 #pragma once
 #ifndef TD_OFFLINE
 	#error You are not supposed to use this header in the kernel driver.
 #endif // !TD_OFFLINE
 
-#define td_version "1.8.4"
+#define td_version "1.9.1"
 
 // Includes
 #include <stdio.h>

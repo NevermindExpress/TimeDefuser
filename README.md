@@ -1,6 +1,6 @@
-﻿# TimeDefuser
+# TimeDefuser
 
-TimeDefuser is a Windows kernel security research project on enforcement of expiration dates (a.k.a. a "*timebomb*") on prerelease Windows builds, how to patch them for gaining arbitrary code execution, 
+TimeDefuser is a Windows kernel security research project on enforcement of expiration dates (a.k.a. the "*timebomb*") on prerelease Windows builds, how to patch them for gaining arbitrary code execution, 
 and a proof-of-concept (shared for education and research purposes) that removes expiration date enforcement from the kernel.
 The PoC driver in this repository patches the timebomb code itself in the kernel, which differs from widespread "activation-based" patches (policy files, registry edits, etc.).
 Thus, it is the most effective and versatile way to neutralize it, unlike activation-based patching methods which are not available in many builds.
@@ -12,31 +12,39 @@ Full whitepaper and technical analysis is located [here](/TimeDefuser-Research.m
 # TimeDefuser PoC Driver
 
 > [!WARNING]
+> This is a Proof-of-concept code for aforementioned research. This does not in any way endorse usage of prerelease builds in any production environments, 
+and neither does provide any warranties about integrity or security of the system.
+>
+> Use this PoC on your own risk and do not install prerelease builds on production environments (or do, but always keep a firewall/NAT and disable SMBv1).
+
+> [!WARNING]
 > This driver is intended to remove the **Windows builds'** expiration date only
 
 It will not remove the expiration date of
 - Your abusive relationship
 - 100-minute Minecraft demo
+- HD Sentinel evaluation
 - The Pepsi can from 1956 that is inside your fridge for whatever reason
-- Aceyware "Tracey" Operating System version 0.1.3 (or whatever it ends up being called)
+- Aceyware "Tracey" Operating System's (or whatever release name I end up naming it as) debug builds
 - ???
-- Evaluation retail Windows builds. While it *may* work, this configuration is unsupported and any related bug reports will be closed.
+- ARM Windows builds (they don't have a functional timebomb in the first place)
+- Evaluation retail Windows builds. While it *should* technically work, this configuration is unsupported and any related bug reports will be closed.
 
 > [!IMPORTANT]
-> This driver will **not** patch Windows Product Activation or any other similar mechanism. These other mechanisms can be preferred as well in supported builds but here is not their place.
+> This driver will **not** patch Windows Product Activation or any other similar mechanism. The other timebomb removal mechanisms can be preferred as well in supported builds but here is not their place.
 
 # Usage
 **Consider reading notes below** *before trying to use this.*
 
 ### Kernel Driver
-1. Disable Driver Signature Enforcement at boot, or from bcdedit. This is not necessary for 32-bit builds.
+1. Enable Test Signing from bcdedit. (`bcdedit /set testsigning yes`) This is not necessary for 32-bit builds.
 2. Get the [latest release](https://github.com/NevermindExpress/TimeDefuser/releases/latest)
 3. Run the bundled `Installer.bat` as administrator.
 4. If your system didn't crash after installition, check expiration date from "winver". Absence of the expiration date means that driver has worked.
 - **(x64 systems only)** Wait for several minutes, the system might crash after a few minutes of installition with a `0x109 CRITICAL_STRUCTURE_CORRUPTION` bugcheck. See notes about more info.
 - If you need to remove driver, simply execute `sc delete TimeDefuser` and reboot.
 ### Offline Patcher (Vista and Later)
-1. Disable integrity checks with bcdedit `bcdedit /set nointegritychecks yes`.
+1. Disable integrity checks with bcdedit `bcdedit /set nointegritychecks yes` (or find a Code Integrity patcher on your own risk).
 2. Get the [latest release](https://github.com/NevermindExpress/TimeDefuser/releases/latest)
 3. If downloaded as ISO image, copy the offline patcher to desktop or any other local folder. **DO NOT RUN FROM CD DRIVE.**
 4. Run the offline patcher executable
@@ -50,7 +58,7 @@ It will not remove the expiration date of
 Getting over it will weaponize this already versatile patch, so disabling PatchGuard will never be implemented. But as an user, you still have workarounds:
 	- Force enable kernel debugger at boot, which will disable PatchGuard
 	- Patch the kernel image itself with offline patcher, instead of runtime patching with driver.
-- This patch can technically be ported to ~~ARM, ARM64~~ and Itanium hosts but due to lack of an environment to run and debug Windows on these platforms, this is not possible at the moment. **UPDATE:** After obtaining such environment and some testing, there are now suspicions that ARM(64) builds may lacking working timebomb capability, removing the need for this.
+- ARM Windows NT builds does NOT have a functional timebomb. They only have initial expiration date reading at boot, but they don't have anything that enforces expration in following hours after boot.
 
 ## Notes for Offline Patcher
 - Do not use kernel driver with offline patched systems, as there will be nothing to remove for the driver.
@@ -111,9 +119,10 @@ Builds with debug symbols are recommended to try, due to symbols making debuggin
 Starting with version 1.8.1, TimeDefuser does not depend on any WDK anymore. Instead, it implements 
 it's own frestanding build environment that implements just as much as what TimeDefuser needs.
 
-1. Open the solution file corresponding to your VS version (or open the oldest one available and retarget it)
-2. Go to Build -> Batch build, select all
-3. That's it.
+1. Open the solution file
+2. Projects are for VS 2026. If you use an older version, change toolchain version from project settings.
+3. Go to Build -> Batch build, select all
+4. That's it.
 
 # Screenshots
 These screenshots are all taken by me.

@@ -4,7 +4,7 @@
 #include "tdwdm/wdm.h"
 
 /// Definitions
-#define td_version "1.9"
+#define td_version "1.9.1"
 
 #define SystemModuleInformation 11
 #define IMAGE_DOS_SIGNATURE 0x5a4d // MZ
